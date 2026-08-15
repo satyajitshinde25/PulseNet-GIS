@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'https://pulsenet-gis.onrender.com/api/v1';
 
 const API = {
   // Helpers
@@ -18,12 +18,12 @@ const API = {
       return { success: false, message: 'Network error' };
     }
   },
-  
+
   // Referrals
   createReferral: async (referralData) => {
     const res = await API._req('/referrals', 'POST', referralData);
-    if(res.success && res.data) {
-        localStorage.setItem('activeReferralId', res.data.id);
+    if (res.success && res.data) {
+      localStorage.setItem('activeReferralId', res.data.id);
     }
     return res;
   },
@@ -31,7 +31,7 @@ const API = {
   getReferral: async (id) => {
     return await API._req(`/referrals/${id}`);
   },
-  
+
   getAllReferrals: async () => {
     return await API._req(`/referrals`);
   },
