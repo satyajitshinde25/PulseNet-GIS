@@ -83,7 +83,7 @@
         const toCard = (key, title, avail) => {
           const total = (avail || 0) + 5; 
           const reserved = 5;
-          return { name: title, data: { total, reserved, available: avail || 0 } };
+          return { key, name: title, data: { total, reserved, available: avail || 0 } };
         };
         
         const resources = [
@@ -98,11 +98,29 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${r.name}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${r.data.total}</td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-600 font-medium">${r.data.reserved}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-bold">${r.data.available}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-bold flex items-center gap-3">
+              <button onclick="updateInventory('${r.key}', -1)" class="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-red-200 text-gray-700 rounded transition-colors">-</button>
+              <span class="w-4 text-center">${r.data.available}</span>
+              <button onclick="updateInventory('${r.key}', 1)" class="w-6 h-6 flex items-center justify-center bg-gray-200 hover:bg-green-200 text-gray-700 rounded transition-colors">+</button>
+            </td>
           </tr>
         `).join('');
       }
     });
+
+    window.updateInventory = async (key, delta) => {
+      const user = Auth.requireRole(['HOSPITAL_MANAGER']);
+      if (!user) return;
+      
+      // Get current inventory to calculate new value
+      const invRes = await API.getHospitalInventory(user.hospitalId);
+      if (invRes.success) {
+          const currentVal = invRes.data[key] || 0;
+          const newVal = Math.max(0, currentVal + delta);
+          await API.updateHospitalInventory(user.hospitalId, { [key]: newVal });
+          window.location.reload();
+      }
+    };
   </script>
 </body>
 </html>

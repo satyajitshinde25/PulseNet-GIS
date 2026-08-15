@@ -111,7 +111,7 @@
       }
 
       // Fetch matching hospitals
-      const requirements = res.data.resources;
+      const requirements = { ...res.data.resources, phcId: res.data.phcId };
       const hRes = await API.getMatchingHospitals(requirements);
       
       if (hRes.success) {
@@ -185,7 +185,7 @@
         
         // Initialize Map to visualize hospitals
         setTimeout(() => {
-          const phcLoc = [18.5304, 73.5701]; // Mulshi Rural PHC
+          const phcLoc = hRes.phc_loc ? [hRes.phc_loc.lat, hRes.phc_loc.lng] : [18.5304, 73.5701];
           const map = MapService.initMap('matching-map', phcLoc, 10);
           if (map) {
             MapService.addMarker(map, phcLoc, 'Your PHC', 'phc');

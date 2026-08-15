@@ -213,8 +213,9 @@ def update_referral_status(referral_id: str, data: ReferralUpdateStatus):
 
 @app.post("/api/v1/matching")
 def get_matching_hospitals(requirements: Dict[str, Any]):
-    # Use PHC location
-    phc_loc = db_phcs["phc-1"]["location"]
+    phc_id = requirements.get("phcId", "phc-1")
+    phc_node = db_phcs.get(phc_id, db_phcs["phc-1"])
+    phc_loc = phc_node["location"]
     
     matched = []
     rejected = []
@@ -253,7 +254,7 @@ def get_matching_hospitals(requirements: Dict[str, Any]):
     # Sort by ETA
     matched.sort(key=lambda x: x["etaMin"])
     
-    return {"success": True, "data": matched, "rejected": rejected}
+    return {"success": True, "data": matched, "rejected": rejected, "phc_loc": phc_loc}
 
 @app.post("/api/v1/reservations")
 def lock_resources(data: dict):
@@ -294,7 +295,9 @@ def update_hospital_inventory(hospital_id: str, data: HospitalInventoryUpdate):
     h = next((h for h in db_hospitals if h["id"] == hospital_id), None)
     if not h:
         return {"success": False, "message": "Not found"}
-    h["inventory"] = data.inventory
+    for k, v in data.inventory.items():
+        if k in h["inventory"]:
+            h["inventory"][k] = max(0, v)
     return {"success": True, "data": h["inventory"]}
 
 @app.get("/api/v1/ambulances")
