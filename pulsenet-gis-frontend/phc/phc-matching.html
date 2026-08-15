@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matching - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+  
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex shrink-0">
+    <div class="h-16 flex items-center px-6 border-b border-gray-200">
+      <span class="material-symbols-outlined text-blue-800 text-2xl mr-2">medical_services</span>
+      <span class="text-xl font-bold text-blue-900 tracking-tight">PulseNet-GIS</span>
+    </div>
+    
+    <div class="p-4">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Primary Health Center</div>
+      <div id="user-name-display" class="font-medium text-gray-800 mb-6 truncate">Dr. Name</div>
+      <nav class="space-y-1">
+        <a href="phc-dashboard.html" data-nav="dashboard" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">dashboard</span>
+          Dashboard
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50">
+      <div class="max-w-4xl mx-auto">
+        
+        <!-- Rejection Alert (Hidden by default) -->
+        <div id="rejection-alert" class="hidden mb-6 bg-red-100 border-l-4 border-red-500 p-4 rounded shadow-sm pulse-alert">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <span class="material-symbols-outlined text-red-500">error</span>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-sm font-medium text-red-800">Hospital rejected referral.</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <p>System is finding the next best hospital...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">Recommended Hospitals</h1>
+            <p class="text-gray-500 mt-1">Ranked based on capability, distance, and load.</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-medium text-gray-500">Ref ID</p>
+            <p class="text-lg font-bold text-blue-900" id="display-ref-id">...</p>
+          </div>
+        </div>
+
+        <!-- Map View -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+          <div id="matching-map" style="height: 300px; width: 100%; z-index: 0;"></div>
+        </div>
+
+        <div id="hospitals-list" class="space-y-4">
+          <!-- Loading placeholder -->
+          <div class="p-12 text-center">
+            <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-gray-500 font-medium">Matching patient requirements...</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script src="../js/map.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      Auth.requireRole(['PHC_DOCTOR']);
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const refId = urlParams.get('id') || localStorage.getItem('activeReferralId');
+      
+      if (!refId) {
+        window.location.href = 'phc-dashboard.html';
+        return;
+      }
+      
+      document.getElementById('display-ref-id').textContent = refId;
+
+      // Check current referral status
+      const res = await API.getReferral(refId);
+      if (res.success && res.data.status === 'REJECTED_BY_HOSPITAL') {
+        document.getElementById('rejection-alert').classList.remove('hidden');
+        // Update status back to pending to allow re-selection
+        await API.updateReferralStatus(refId, 'PENDING_MATCHING');
+      } else if (res.success && res.data.status !== 'PENDING_MATCHING') {
+        // If already accepted/waiting, redirect to transfer page
+        window.location.href = `phc-transfer.html?id=${refId}`;
+        return;
+      }
+
+      // Fetch matching hospitals
+      const requirements = res.data.resources;
+      const hRes = await API.getMatchingHospitals(requirements);
+      
+      if (hRes.success) {
+        const listEl = document.getElementById('hospitals-list');
+        listEl.innerHTML = '';
+        
+        // Show rejected hospitals (if any)
+        if (hRes.rejected && hRes.rejected.length > 0) {
+            const rejectedDiv = document.createElement('div');
+            rejectedDiv.className = "mb-4 bg-gray-100 p-4 rounded-lg";
+            rejectedDiv.innerHTML = `<h3 class="font-bold text-gray-700 mb-2">Hospitals Filtered Out</h3>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    ${hRes.rejected.map(r => `<li>❌ <strong>${r.hospital}</strong>: ${r.reasons.join(', ')}</li>`).join('')}
+                </ul>`;
+            listEl.appendChild(rejectedDiv);
+        }
+
+        if (hRes.data.length === 0) {
+            listEl.innerHTML += `<div class="p-8 text-center text-red-500 font-bold">No eligible hospitals found for the required resources.</div>`;
+        }
+
+        hRes.data.forEach((h, index) => {
+          // highlight best match
+          const isBest = index === 0;
+          const borderClass = isBest ? 'border-blue-500 shadow-md ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-300';
+          const bestBadge = isBest ? `<span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded absolute -top-3 left-6">FASTEST ELIGIBLE</span>` : '';
+          
+          let loadColor = 'text-green-600';
+          if(h.load > 50) loadColor = 'text-yellow-600';
+          if(h.load > 80) loadColor = 'text-red-600';
+
+          const card = document.createElement('div');
+          card.className = `bg-white rounded-xl border p-6 relative transition-all ${borderClass}`;
+          card.innerHTML = `
+            ${bestBadge}
+            <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-xl font-bold text-gray-800">${h.name}</h3>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
+                  <div class="bg-gray-50 p-2 rounded text-center">
+                    <span class="block text-xs text-gray-500 uppercase">Distance</span>
+                    <span class="font-bold text-gray-800">${h.distanceKm} km</span>
+                  </div>
+                  <div class="bg-gray-50 p-2 rounded text-center">
+                    <span class="block text-xs text-gray-500 uppercase">ETA</span>
+                    <span class="font-bold text-gray-800">${h.etaMin} min</span>
+                  </div>
+                  <div class="bg-gray-50 p-2 rounded text-center">
+                    <span class="block text-xs text-gray-500 uppercase">Load</span>
+                    <span class="font-bold ${loadColor}">${h.load}%</span>
+                  </div>
+                  <div class="bg-blue-50 p-2 rounded text-center border border-blue-100">
+                    <span class="block text-xs text-blue-600 uppercase">ICU Avail</span>
+                    <span class="font-bold text-blue-800">${h.inventory.icu || 0}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="w-full md:w-auto mt-4 md:mt-0 self-center">
+                <button onclick="selectHospital('${refId}', '${h.id}', '${encodeURIComponent(JSON.stringify(requirements))}')" class="${isBest ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-900'} text-white w-full px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap">
+                  SELECT HOSPITAL
+                </button>
+              </div>
+            </div>
+          `;
+          listEl.appendChild(card);
+        });
+        
+        // Initialize Map to visualize hospitals
+        setTimeout(() => {
+          const phcLoc = [18.5304, 73.5701]; // Mulshi Rural PHC
+          const map = MapService.initMap('matching-map', phcLoc, 10);
+          if (map) {
+            MapService.addMarker(map, phcLoc, 'Your PHC', 'phc');
+            
+            hRes.data.forEach((h) => {
+              if (h.location) {
+                MapService.addMarker(map, [h.location.lat, h.location.lng], `${h.name} (${h.distanceKm}km)`, 'hospital');
+              }
+            });
+          }
+        }, 300);
+      }
+    });
+
+    window.selectHospital = async (refId, hospId, requirementsJson) => {
+      // Disable buttons
+      document.querySelectorAll('button').forEach(b => { b.disabled = true; b.classList.add('opacity-50'); });
+      
+      App.showToast("Locking resources and requesting hospital verification...", "info");
+      
+      const requirements = JSON.parse(decodeURIComponent(requirementsJson));
+      await API.selectHospital(refId, hospId, requirements);
+      
+      // Redirect to transfer page tracking the WAITING state
+      setTimeout(() => {
+        window.location.href = `phc-transfer.html?id=${refId}`;
+      }, 1000);
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Referral - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+  
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex shrink-0">
+    <div class="h-16 flex items-center px-6 border-b border-gray-200">
+      <span class="material-symbols-outlined text-blue-800 text-2xl mr-2">medical_services</span>
+      <span class="text-xl font-bold text-blue-900 tracking-tight">PulseNet-GIS</span>
+    </div>
+    
+    <div class="p-4">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Primary Health Center</div>
+      <div id="user-name-display" class="font-medium text-gray-800 mb-6 truncate">Dr. Name</div>
+      
+      <nav class="space-y-1">
+        <a href="phc-dashboard.html" data-nav="dashboard" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="phc-referral.html" data-nav="referral" class="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-50 text-blue-700 font-semibold transition-colors">
+          <span class="material-symbols-outlined">add_circle</span>
+          New Referral
+        </a>
+        <a href="phc-transfer.html" data-nav="transfer" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">moving</span>
+          Active Transfers
+        </a>
+        <a href="phc-history.html" data-nav="history" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">history</span>
+          History
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+    
+    <!-- Header Mobile -->
+    <header class="md:hidden h-16 bg-white border-b border-gray-200 flex items-center px-4 shrink-0 gap-4">
+      <a href="phc-dashboard.html" class="text-gray-500 hover:text-blue-600">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <span class="font-bold text-gray-800">New Referral</span>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-gray-800 hidden md:block">Create Emergency Referral</h1>
+          <p class="text-gray-500 mt-1">Submit patient details and required resources to initiate hospital matching.</p>
+        </div>
+
+        <form id="referral-form" class="space-y-8">
+          
+          <!-- PATIENT DETAILS -->
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+              <span class="material-symbols-outlined text-blue-600">person</span>
+              Patient Details
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Patient Identifier (Name/ID)</label>
+                <input type="text" id="patientId" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. John Doe / P-1029">
+              </div>
+              <div class="grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Age</label>
+                  <input type="number" id="age" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                  <select id="gender" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    <option value="M">M</option>
+                    <option value="F">F</option>
+                    <option value="O">O</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Blood</label>
+                  <select id="bloodGroup" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                </div>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Primary Condition / Diagnosis</label>
+                <input type="text" id="condition" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="e.g. Severe Trauma, Cardiac Arrest">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Emergency Severity</label>
+                <div class="flex gap-4">
+                  <label class="flex-1 flex items-center justify-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-yellow-50 has-[:checked]:bg-yellow-100 has-[:checked]:border-yellow-500 transition-colors">
+                    <input type="radio" name="severity" value="Moderate" class="sr-only">
+                    <span class="font-medium text-yellow-800">Moderate</span>
+                  </label>
+                  <label class="flex-1 flex items-center justify-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-orange-50 has-[:checked]:bg-orange-100 has-[:checked]:border-orange-500 transition-colors">
+                    <input type="radio" name="severity" value="Severe" class="sr-only">
+                    <span class="font-medium text-orange-800">Severe</span>
+                  </label>
+                  <label class="flex-1 flex items-center justify-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-red-50 has-[:checked]:bg-red-100 has-[:checked]:border-red-500 transition-colors">
+                    <input type="radio" name="severity" value="Critical" class="sr-only" checked>
+                    <span class="font-medium text-red-800">Critical (Code Red)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REQUIRED RESOURCES -->
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
+              <span class="material-symbols-outlined text-blue-600">inventory_2</span>
+              Required Resources
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">Select the specific resources needed immediately upon arrival.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="checkbox" id="req-icu" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                <span class="ml-3 font-medium text-gray-700">ICU Bed</span>
+              </label>
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="checkbox" id="req-vent" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                <span class="ml-3 font-medium text-gray-700">Ventilator</span>
+              </label>
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                <input type="checkbox" id="req-gen" class="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500">
+                <span class="ml-3 font-medium text-gray-700">General Bed</span>
+              </label>
+            </div>
+            
+            <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center gap-4">
+              <label class="flex items-center cursor-pointer">
+                <input type="checkbox" id="req-blood" class="w-5 h-5 text-red-600 rounded border-gray-300 focus:ring-red-500" onchange="document.getElementById('blood-units-wrap').classList.toggle('hidden', !this.checked)">
+                <span class="ml-3 font-medium text-gray-700">Blood Required</span>
+              </label>
+              <div id="blood-units-wrap" class="hidden flex items-center gap-2 ml-auto">
+                <label class="text-sm font-medium text-gray-600">Units:</label>
+                <input type="number" id="blood-units" value="1" min="1" max="10" class="w-20 px-3 py-1 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-4">
+            <a href="phc-dashboard.html" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">Cancel</a>
+            <button type="submit" id="submit-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold shadow-md transition-colors flex items-center gap-2">
+              <span class="material-symbols-outlined">send</span>
+              SUBMIT REFERRAL
+            </button>
+          </div>
+
+        </form>
+        
+        <!-- Loading Overlay for submission -->
+        <div id="submission-overlay" class="fixed inset-0 bg-white/90 z-50 flex flex-col items-center justify-center hidden">
+          <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-2" id="loading-title">Referral submitted successfully.</h2>
+          <p class="text-gray-500" id="loading-desc">System is validating referral...</p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script src="js/phc.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Auth.requireRole(['PHC_DOCTOR']);
+      
+      document.getElementById('referral-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const referralData = {
+          patientId: document.getElementById('patientId').value,
+          age: document.getElementById('age').value,
+          gender: document.getElementById('gender').value,
+          bloodGroup: document.getElementById('bloodGroup').value,
+          condition: document.getElementById('condition').value,
+          severity: document.querySelector('input[name="severity"]:checked').value,
+          resources: {
+            icu: document.getElementById('req-icu').checked,
+            ventilator: document.getElementById('req-vent').checked,
+            general: document.getElementById('req-gen').checked,
+            blood: document.getElementById('req-blood').checked,
+            bloodUnits: document.getElementById('req-blood').checked ? parseInt(document.getElementById('blood-units').value) : 0
+          },
+          phcId: Auth.requireRole(['PHC_DOCTOR']).phcId
+        };
+
+        const overlay = document.getElementById('submission-overlay');
+        const title = document.getElementById('loading-title');
+        const desc = document.getElementById('loading-desc');
+        
+        overlay.classList.remove('hidden');
+        
+        // Mock flow
+        await API.createReferral(referralData);
+        
+        setTimeout(() => {
+          title.textContent = "Validating...";
+          desc.textContent = "Checking resource requirements against hospital network.";
+        }, 800);
+        
+        setTimeout(() => {
+          title.textContent = "Finding suitable hospitals...";
+          desc.textContent = "Running matching algorithm...";
+        }, 1600);
+        
+        setTimeout(() => {
+          // Go to matching screen
+          const refId = localStorage.getItem('activeReferralId');
+          window.location.href = `phc-matching.html?id=${refId}`;
+        }, 2500);
+      });
+    });
+  </script>
+</body>
+</html>

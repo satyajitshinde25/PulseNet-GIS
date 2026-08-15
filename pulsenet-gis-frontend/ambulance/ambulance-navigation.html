@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Navigation - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+  
+  <header class="h-16 bg-red-800 text-white flex items-center justify-between px-4 shrink-0 shadow-md z-10 relative">
+    <div class="flex flex-col">
+      <span class="font-bold tracking-wide">Driver App</span>
+      <span class="text-xs text-red-200" id="unit-name-display">Unit Name</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="px-2 py-1 bg-red-900 rounded text-xs font-bold pulse-alert" id="stage-badge">EN ROUTE TO PHC</span>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col relative">
+    
+    <!-- Map Container -->
+    <div id="map" class="flex-1 z-0"></div>
+
+    <!-- Bottom Navigation Info Panel -->
+    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10 p-6">
+      
+      <div class="flex justify-between items-end mb-6">
+        <div>
+          <p class="text-sm font-bold text-gray-500 uppercase tracking-wider" id="nav-target-label">Navigating to</p>
+          <h2 class="text-2xl font-bold text-gray-900" id="nav-target-name">PHC North</h2>
+        </div>
+        <div class="text-right">
+          <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">ETA</p>
+          <p class="text-3xl font-bold text-blue-600" id="nav-eta">4 min</p>
+        </div>
+      </div>
+
+      <div class="h-px bg-gray-200 w-full mb-6"></div>
+
+      <button id="btn-next-stage" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined" id="btn-icon">check_circle</span>
+        <span id="btn-text">PATIENT PICKED UP</span>
+      </button>
+      
+    </div>
+
+  </main>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script src="../js/map.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireRole(['AMBULANCE_DRIVER']);
+      if(!user) return;
+      document.getElementById('unit-name-display').textContent = user.unitId.toUpperCase();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const refId = urlParams.get('id');
+      
+      let stage = 'TO_PHC'; // TO_PHC -> TO_HOSPITAL -> HANDOVER
+      
+      // Init Map
+      const map = MapService.initMap('map', [18.5204, 73.8567], 13);
+
+      const netRes = await API._req('/network');
+      const refRes = await API.getReferral(refId);
+      
+      let locAmb = [18.5300, 73.8500]; // fallback
+      let locPHC = [18.5304, 73.5701];
+      let locHosp = [18.5350, 73.8767];
+      let phcName = "Mulshi Rural PHC";
+      let hospName = "City Hospital";
+
+      if(netRes.success && refRes.success) {
+          const amb = netRes.data.ambulances.find(a => a.id === user.unitId);
+          if(amb) locAmb = [amb.location.lat, amb.location.lng];
+          
+          const phc = netRes.data.phcs.find(p => p.id === refRes.data.phcId);
+          if(phc) {
+              locPHC = [phc.location.lat, phc.location.lng];
+              phcName = phc.name;
+          }
+          
+          const hosp = netRes.data.hospitals.find(h => h.id === refRes.data.selectedHospitalId);
+          if(hosp) {
+              locHosp = [hosp.location.lat, hosp.location.lng];
+              hospName = hosp.name;
+          }
+      }
+
+      const ambMarker = MapService.addMarker(map, locAmb, 'Ambulance', 'ambulance');
+      const phcMarker = MapService.addMarker(map, locPHC, phcName, 'phc');
+      const hospMarker = MapService.addMarker(map, locHosp, hospName, 'hospital');
+
+      let currentRoute = null;
+
+      // Draw initial route
+      MapService.drawRoute(map, locAmb, locPHC, '#2563eb').then(r => {
+        currentRoute = r.layer;
+        MapService.fitBounds(map, [locAmb, locPHC]);
+      });
+
+      const btn = document.getElementById('btn-next-stage');
+      const badge = document.getElementById('stage-badge');
+      const tLabel = document.getElementById('nav-target-label');
+      const tName = document.getElementById('nav-target-name');
+      const eta = document.getElementById('nav-eta');
+      
+      tName.textContent = phcName;
+
+      btn.addEventListener('click', async () => {
+        if(stage === 'TO_PHC') {
+          // Transition to Hospital
+          stage = 'TO_HOSPITAL';
+          badge.textContent = 'EN ROUTE TO HOSPITAL';
+          tLabel.textContent = 'Navigating to';
+          tName.textContent = hospName;
+          eta.textContent = 'Calculating...';
+          document.getElementById('btn-text').textContent = 'HANDOVER COMPLETED';
+          
+          await API.updateReferralStatus(refId, 'ROUTING');
+          
+          // Update map
+          ambMarker.setLatLng(locPHC);
+          if(currentRoute) map.removeLayer(currentRoute);
+          MapService.drawRoute(map, locPHC, locHosp, '#16a34a').then(r => {
+            currentRoute = r.layer;
+            MapService.fitBounds(map, [locPHC, locHosp]);
+            eta.textContent = Math.round(r.duration / 60) + ' min';
+          });
+          
+        } else if (stage === 'TO_HOSPITAL') {
+          // Complete
+          await API.updateReferralStatus(refId, 'COMPLETED');
+          await API.updateAmbulanceStatus(user.unitId, 'AVAILABLE');
+          
+          App.showToast("Handover Completed. Returning to Available state.", "success");
+          
+          setTimeout(() => {
+            window.location.href = 'ambulance-dashboard.html';
+          }, 1500);
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>

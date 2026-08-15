@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ambulance History - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+  <header class="h-16 bg-red-800 text-white flex items-center justify-between px-4 shrink-0 shadow-md z-10">
+    <div class="flex flex-col">
+      <span class="font-bold tracking-wide">Driver App</span>
+      <span class="text-xs text-red-200" id="unit-name-display">Unit Name</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="ambulance-dashboard.html" class="text-white hover:text-red-200"><span class="material-symbols-outlined">arrow_back</span></a>
+    </div>
+  </header>
+  <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Trip History</h1>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="divide-y divide-gray-200" id="ambulance-history-list">
+        <div class="p-8 text-center text-gray-500">Loading...</div>
+      </div>
+    </div>
+  </main>
+  
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireRole(['AMBULANCE_DRIVER']);
+      if(user) {
+        document.getElementById('unit-name-display').textContent = user.unitId.toUpperCase();
+        
+        const res = await API.getAllReferrals();
+        const referrals = res.success ? res.data : [];
+        // Find completed trips for this unit
+        const completed = referrals.filter(r => r.status === 'COMPLETED' && r.ambulanceId === user.unitId);
+        
+        const listEl = document.getElementById('ambulance-history-list');
+        
+        if (completed.length === 0) {
+          listEl.innerHTML = `<div class="p-8 text-center text-gray-500">No completed trips found.</div>`;
+          return;
+        }
+        
+        const sorted = completed.sort((a,b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+        
+        listEl.innerHTML = sorted.map(r => `
+          <div class="p-4 flex flex-col justify-between gap-2">
+            <div class="flex justify-between">
+              <h4 class="font-bold text-gray-900">Patient ID: ${r.patientId}</h4>
+              <span class="text-xs text-gray-500">${new Date(r.updatedAt || r.createdAt).toLocaleDateString()}</span>
+            </div>
+            <div class="text-sm text-gray-600">From: PHC North &rarr; To: City Hospital</div>
+            <div>
+              <span class="px-2 py-1 rounded text-xs font-semibold bg-green-100 text-green-800">
+                COMPLETED
+              </span>
+            </div>
+          </div>
+        `).join('');
+      }
+    });
+  </script>
+</body>
+</html>

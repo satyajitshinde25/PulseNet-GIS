@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dispatch Alert - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body class="bg-red-600 h-screen flex flex-col overflow-hidden text-white">
+  
+  <main class="flex-1 flex flex-col p-6 justify-center max-w-md mx-auto w-full">
+    
+    <div class="text-center mb-8 pulse-alert p-4 rounded-full bg-red-700 mx-auto border-4 border-red-500">
+      <span class="material-symbols-outlined text-5xl">campaign</span>
+    </div>
+    
+    <h1 class="text-3xl font-bold text-center mb-2">DISPATCH ALERT</h1>
+    <div class="text-center mb-8 bg-white/20 rounded-full py-1 px-4 inline-block mx-auto text-sm font-bold">
+      <span id="countdown" class="text-yellow-300">15</span> seconds to respond
+    </div>
+
+    <div class="bg-white rounded-xl shadow-xl text-gray-800 p-6 mb-8">
+      <div class="space-y-4">
+        <div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Pickup</p>
+          <p class="font-bold text-lg" id="pickup-name">PHC North</p>
+          <p class="text-sm text-blue-600 font-bold mt-1" id="pickup-dist">Distance: 2.1 km</p>
+        </div>
+        
+        <div class="h-px bg-gray-200 w-full"></div>
+        
+        <div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Dropoff</p>
+          <p class="font-bold text-lg" id="dropoff-name">City Hospital</p>
+        </div>
+
+        <div class="h-px bg-gray-200 w-full"></div>
+        
+        <div>
+          <p class="text-xs text-gray-500 font-bold uppercase tracking-wider">Patient</p>
+          <p class="font-bold text-red-600" id="dispatch-patient-info">Trauma - Code Red</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <button id="btn-decline" class="bg-gray-800 hover:bg-gray-900 text-white py-4 rounded-xl font-bold text-lg transition-colors">
+        DECLINE
+      </button>
+      <button id="btn-accept" class="bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold text-lg transition-colors shadow-lg">
+        ACCEPT
+      </button>
+    </div>
+
+  </main>
+
+  <!-- Decline overlay -->
+  <div id="decline-overlay" class="fixed inset-0 bg-gray-900 z-50 flex flex-col items-center justify-center hidden">
+    <span class="material-symbols-outlined text-white text-5xl mb-4">cancel</span>
+    <h2 class="text-2xl font-bold text-white mb-2">Driver declined assignment.</h2>
+    <p class="text-gray-400">Searching for next available driver...</p>
+  </div>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script src="js/ambulance.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Auth.requireRole(['AMBULANCE_DRIVER']);
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      const refId = urlParams.get('id');
+      
+      if(!refId) {
+        window.location.href = 'ambulance-dashboard.html';
+        return;
+      }
+      
+      // Fetch dynamic names
+      API.getReferral(refId).then(refRes => {
+          if(refRes.success) {
+              document.getElementById('dispatch-patient-info').textContent = refRes.data.condition + " - " + refRes.data.severity;
+              API._req('/network').then(netRes => {
+                  if(netRes.success) {
+                      const phc = netRes.data.phcs.find(p => p.id === refRes.data.phcId);
+                      if(phc) document.getElementById('pickup-name').textContent = phc.name;
+                      
+                      const hosp = netRes.data.hospitals.find(h => h.id === refRes.data.selectedHospitalId);
+                      if(hosp) document.getElementById('dropoff-name').textContent = hosp.name;
+                      
+                      const amb = netRes.data.ambulances.find(a => a.id === Auth.getCurrentUser().unitId);
+                      if(amb && amb.distanceKm) document.getElementById('pickup-dist').textContent = `Distance: ${amb.distanceKm} km`;
+                  }
+              });
+          }
+      });
+      
+      // Auto countdown
+      let timeLeft = 15;
+      const el = document.getElementById('countdown');
+      const timer = setInterval(() => {
+        timeLeft--;
+        el.textContent = timeLeft;
+        if(timeLeft <= 0) {
+          clearInterval(timer);
+          document.getElementById('btn-decline').click();
+        }
+      }, 1000);
+
+      document.getElementById('btn-accept').addEventListener('click', async () => {
+        clearInterval(timer);
+        const user = Auth.getCurrentUser();
+        // Disable buttons
+        document.getElementById('btn-accept').disabled = true;
+        document.getElementById('btn-decline').disabled = true;
+        
+        await API.acceptDispatch(refId, user.unitId);
+        window.location.href = `ambulance-navigation.html?id=${refId}`;
+      });
+
+      document.getElementById('btn-decline').addEventListener('click', async () => {
+        clearInterval(timer);
+        document.getElementById('decline-overlay').classList.remove('hidden');
+        document.getElementById('decline-overlay').classList.add('flex');
+        
+        const user = Auth.getCurrentUser();
+        await API.declineDispatch(refId, user.unitId);
+        
+        // Wait briefly to show the message then return to dashboard
+        setTimeout(() => {
+          window.location.href = 'ambulance-dashboard.html';
+        }, 1500);
+      });
+    });
+  </script>
+</body>
+</html>

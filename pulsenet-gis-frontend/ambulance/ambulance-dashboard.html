@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Ambulance Dashboard - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+  
+  <header class="h-16 bg-red-800 text-white flex items-center justify-between px-4 shrink-0 shadow-md z-10">
+    <div class="flex flex-col">
+      <span class="font-bold tracking-wide">Driver App</span>
+      <span class="text-xs text-red-200" id="unit-name-display">Unit Name</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="material-symbols-outlined">menu</span>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col p-4 relative">
+    
+    <!-- Status Control -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4 text-center">
+      <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Current Status</h2>
+      
+      <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
+        <button id="btn-status-avail" onclick="Ambulance.setStatus('AVAILABLE')" class="px-6 py-2 rounded-md font-bold text-sm transition-colors bg-green-500 text-white shadow-sm">
+          AVAILABLE
+        </button>
+        <button id="btn-status-busy" onclick="Ambulance.setStatus('BUSY')" class="px-6 py-2 rounded-md font-bold text-sm transition-colors text-gray-600 hover:bg-gray-200">
+          BUSY
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+      <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow font-bold text-gray-700 flex items-center gap-2">
+        <span class="material-symbols-outlined text-blue-500 animate-pulse">radar</span>
+        Waiting for dispatch...
+      </div>
+      <div id="ambulance-dashboard-map" style="height: 100%; width: 100%; z-index: 0;"></div>
+    </div>
+
+  </main>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script src="../js/map.js?v=3"></script>
+  <script src="js/ambulance.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = Auth.requireRole(['AMBULANCE_DRIVER']);
+      if(user) {
+        document.getElementById('unit-name-display').textContent = user.unitId.toUpperCase();
+        Ambulance.initDashboard(user.unitId);
+        
+        // Initialize Map
+        setTimeout(() => {
+          const map = MapService.initMap('ambulance-dashboard-map', [40.7100, -74.0000], 14);
+          if (map) {
+            MapService.addMarker(map, [40.7100, -74.0000], 'Your Location', 'ambulance');
+          }
+        }, 500);
+
+        window.addEventListener('storage', () => {
+          Ambulance.checkDispatch(user.unitId);
+        });
+      }
+    });
+  </script>
+</body>
+</html>

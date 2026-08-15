@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hospital Manager Dashboard - PulseNet-GIS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-on-surface": "#eaf1ff",
+                      "on-primary-container": "#85b3ef",
+                      "on-error": "#ffffff",
+                      "primary-fixed": "#d2e4ff",
+                      "on-secondary-fixed-variant": "#004c6b",
+                      "on-tertiary-fixed": "#410007",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed": "#001c38",
+                      "tertiary-fixed": "#ffdad8",
+                      "surface-variant": "#d3e4fe",
+                      "outline-variant": "#c2c7d1",
+                      "primary": "#002e55",
+                      "tertiary": "#62000f",
+                      "on-surface-variant": "#42474f",
+                      "secondary-fixed": "#c6e7ff",
+                      "surface-container": "#e5eeff",
+                      "surface-bright": "#f8f9ff",
+                      "inverse-surface": "#213145",
+                      "inverse-primary": "#a1c9ff",
+                      "on-secondary": "#ffffff",
+                      "tertiary-container": "#8c001a",
+                      "on-primary-fixed-variant": "#0a487e",
+                      "on-background": "#0b1c30",
+                      "on-error-container": "#93000a",
+                      "surface": "#f8f9ff",
+                      "surface-container-lowest": "#ffffff",
+                      "outline": "#727780",
+                      "on-secondary-fixed": "#001e2d",
+                      "surface-dim": "#cbdbf5",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-container": "#ff918f",
+                      "secondary-fixed-dim": "#81cfff",
+                      "tertiary-fixed-dim": "#ffb3b1",
+                      "background": "#f8f9ff",
+                      "on-secondary-container": "#005374",
+                      "surface-container-high": "#dce9ff",
+                      "surface-container-low": "#eff4ff",
+                      "primary-fixed-dim": "#a1c9ff",
+                      "primary-container": "#02457a",
+                      "on-tertiary-fixed-variant": "#92001b",
+                      "on-primary": "#ffffff",
+                      "surface-container-highest": "#d3e4fe",
+                      "secondary-container": "#67c8ff",
+                      "on-surface": "#0b1c30",
+                      "error": "#ba1a1a",
+                      "secondary": "#00658d",
+                      "surface-tint": "#2e6097"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "lg": "24px",
+                      "sm": "8px",
+                      "base": "4px",
+                      "margin-mobile": "16px",
+                      "xs": "4px",
+                      "gutter": "20px",
+                      "xl": "48px",
+                      "margin-desktop": "32px",
+                      "md": "16px"
+              },
+              "fontFamily": {
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "data-mono": [
+                              "JetBrains Mono"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-sm": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "data-mono": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+    </style>
+</head>
+<body class="flex h-full overflow-hidden bg-background font-body-md text-body-md text-on-background">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col h-screen w-64 border-r bg-surface-container-low dark:bg-inverse-surface border-outline-variant dark:border-outline py-md gap-sm shrink-0">
+<!-- Header -->
+<div class="px-margin-desktop mb-lg flex items-center gap-sm">
+<div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-primary">local_hospital</span>
+</div>
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed">PulseNet GIS</span>
+<span class="text-label-md font-label-md text-on-surface-variant">Healthcare Coordinator</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 flex flex-col gap-xs overflow-y-auto">
+<!-- Active: Dashboard -->
+<a class="bg-secondary-container dark:bg-on-secondary-fixed-variant text-on-secondary-container dark:text-secondary-fixed rounded-full mx-2 flex items-center gap-md px-4 py-3 scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-body-md font-body-md font-semibold">Dashboard</span>
+</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-all px-4 py-3 mx-2 flex items-center gap-md" href="#">
+<span class="material-symbols-outlined">local_hospital</span>
+<span class="text-body-md font-body-md">Facilities</span>
+</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-all px-4 py-3 mx-2 flex items-center gap-md" href="#">
+<span class="material-symbols-outlined">ambulance</span>
+<span class="text-body-md font-body-md">Fleet</span>
+</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-all px-4 py-3 mx-2 flex items-center gap-md" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="text-body-md font-body-md">Analytics</span>
+</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-variant rounded-full transition-all px-4 py-3 mx-2 flex items-center gap-md" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-body-md font-body-md">Settings</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="px-4 mt-auto">
+<button class="w-full bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container transition-colors py-3 rounded-full flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">add</span>
+<span class="text-label-md font-label-md">New Referral</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- TopAppBar (Mobile & Global Actions) -->
+<header class="flex justify-between items-center w-full px-margin-desktop h-16 sticky top-0 z-50 bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shrink-0">
+<div class="flex items-center gap-md">
+<button class="md:hidden p-2 text-on-surface-variant">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex flex-col">
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed leading-none">City Hospital</h1>
+<span class="text-label-md font-label-md text-secondary leading-none mt-1">Resource Health: OPTIMAL</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">emergency</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Canvas -->
+<div class="flex-1 overflow-y-auto p-margin-desktop md:p-xl bg-surface-bright flex flex-col gap-lg">
+<!-- URGENT ALERT PANEL -->
+<div class="bg-error-container border border-error rounded-xl p-md flex items-start gap-md shadow-sm">
+<span class="material-symbols-outlined text-error mt-1" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div class="flex-1">
+<h3 class="text-headline-sm font-headline-sm text-on-error-container">URGENT INCOMING REFERRAL</h3>
+<p class="text-body-sm font-body-sm text-on-error-container mt-1">ETA: 12 mins. Trauma Level 1 from Interstate 95. Requires immediate ICU preparation and O- blood type availability.</p>
+</div>
+<button class="bg-error text-on-error px-4 py-2 rounded-full text-label-md font-label-md hover:bg-on-error hover:text-error transition-colors border border-transparent hover:border-error">
+                    Acknowledge
+                </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Resource Grid (Bento Style) -->
+<div class="md:col-span-8 flex flex-col gap-md">
+<h2 class="text-headline-sm font-headline-sm text-primary mb-2">Live Resource Inventory</h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md">
+<!-- ICU Beds -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between" id="card-icu">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">bed</span>
+<span class="text-label-md font-label-md text-on-surface-variant">ICU BEDS</span>
+</div>
+<span class="bg-surface-container px-2 py-1 rounded text-label-md font-label-md text-primary" id="icu-cap">82% Cap</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center mt-auto items-center">
+<div class="flex flex-col border-r border-outline-variant">
+<span class="text-data-mono font-data-mono text-on-surface" id="icu-total">45</span>
+<span class="text-[10px] uppercase tracking-wider text-outline">Total</span>
+</div>
+<div class="flex flex-col border-r border-outline-variant">
+<div class="flex items-center justify-center gap-1">
+<button class="text-outline hover:text-primary transition-colors focus:outline-none" onclick="updateResource('icu', -1)"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="text-data-mono font-data-mono text-secondary" id="icu-inuse">37</span>
+<button class="text-outline hover:text-primary transition-colors focus:outline-none" onclick="updateResource('icu', 1)"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+<span class="text-[10px] uppercase tracking-wider text-outline">In Use</span>
+</div>
+<div class="flex flex-col">
+<span class="text-data-mono font-data-mono text-primary font-bold" id="icu-avail">8</span>
+<span class="text-[10px] uppercase tracking-wider text-outline">Avail</span>
+</div>
+</div>
+</div>
+<!-- Ventilators -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between" id="card-vent">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">air</span>
+<span class="text-label-md font-label-md text-on-surface-variant">VENTILATORS</span>
+</div>
+<span class="bg-surface-container px-2 py-1 rounded text-label-md font-label-md text-primary" id="vent-cap">40% Cap</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center mt-auto items-center">
+<div class="flex flex-col border-r border-outline-variant">
+<span class="text-data-mono font-data-mono text-on-surface" id="vent-total">120</span>
+<span class="text-[10px] uppercase tracking-wider text-outline">Total</span>
+</div>
+<div class="flex flex-col border-r border-outline-variant">
+<div class="flex items-center justify-center gap-1">
+<button class="text-outline hover:text-primary transition-colors focus:outline-none" onclick="updateResource('vent', -1)"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="text-data-mono font-data-mono text-secondary" id="vent-inuse">48</span>
+<button class="text-outline hover:text-primary transition-colors focus:outline-none" onclick="updateResource('vent', 1)"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+<span class="text-[10px] uppercase tracking-wider text-outline">In Use</span>
+</div>
+<div class="flex flex-col">
+<span class="text-data-mono font-data-mono text-primary font-bold" id="vent-avail">72</span>
+<span class="text-[10px] uppercase tracking-wider text-outline">Avail</span>
+</div>
+</div>
+</div>
+<!-- Blood Supply -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between" id="card-blood">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error">water_drop</span>
+<span class="text-label-md font-label-md text-on-surface-variant">BLOOD (O-)</span>
+</div>
+<span class="bg-error-container text-on-error-container px-2 py-1 rounded text-label-md font-label-md" id="blood-status">CRITICAL</span>
+</div>
+<div class="grid grid-cols-3 gap-2 text-center mt-auto items-center">
+<div class="flex flex-col border-r border-outline-variant">
+<span class="text-data-mono font-data-mono text-on-surface">50U</span>
+<span class="text-[10px] uppercase tracking-wider text-outline">Target</span>
+</div>
+<div class="flex flex-col border-r border-outline-variant">
+<div class="flex items-center justify-center gap-1">
+<button class="text-outline hover:text-primary transition-colors focus:outline-none" onclick="updateResource('blood', -1)"><span class="material-symbols-outlined text-sm">remove</span></button>
+<span class="text-data-mono font-data-mono text-secondary" id="blood-rsrvd">5</span><span class="text-data-mono font-data-mono text-secondary">U</span>
+<button class="text-outline hover:text-primary transition-colors focus:outline-none" onclick="updateResource('blood', 1)"><span class="material-symbols-outlined text-sm">add</span></button>
+</div>
+<span class="text-[10px] uppercase tracking-wider text-outline">Rsrvd</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center justify-center">
+<span class="text-data-mono font-data-mono text-error font-bold" id="blood-avail">12</span><span class="text-data-mono font-data-mono text-error font-bold" id="blood-u">U</span>
+</div>
+<span class="text-[10px] uppercase tracking-wider text-outline">Avail</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats / Activity Sidebar -->
+<div class="md:col-span-4 flex flex-col gap-md">
+<h2 class="text-headline-sm font-headline-sm text-primary mb-2">Recent Activity</h2>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-0 overflow-hidden flex flex-col">
+<!-- Activity List -->
+<div class="flex flex-col divide-y divide-outline-variant">
+<div class="p-sm flex items-start gap-3 hover:bg-surface-container transition-colors cursor-pointer">
+<div class="h-8 w-8 rounded-full bg-secondary-container flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-on-secondary-container text-sm">ambulance</span>
+</div>
+<div>
+<p class="text-body-sm font-body-sm text-on-surface">Unit A-12 dispatched to site.</p>
+<span class="text-label-md font-label-md text-outline">2 mins ago</span>
+</div>
+</div>
+<div class="p-sm flex items-start gap-3 hover:bg-surface-container transition-colors cursor-pointer">
+<div class="h-8 w-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">done_all</span>
+</div>
+<div>
+<p class="text-body-sm font-body-sm text-on-surface">Referral #8892 completed.</p>
+<span class="text-label-md font-label-md text-outline">15 mins ago</span>
+</div>
+</div>
+</div>
+<div class="p-sm bg-surface-container border-t border-outline-variant text-center">
+<a class="text-label-md font-label-md text-primary hover:underline" href="#">View All History</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+    // Initialize state from localStorage or defaults
+    const state = {
+        icu: { total: 45, inUse: parseInt(localStorage.getItem('icu-inUse')) || 37 },
+        vent: { total: 120, inUse: parseInt(localStorage.getItem('vent-inUse')) || 48 },
+        blood: { total_inventory: 17, rsrvd: parseInt(localStorage.getItem('blood-rsrvd')) || 5 } // total_inventory = rsrvd (5) + avail (12)
+    };
+
+    function updateResource(type, delta) {
+        if (type === 'icu') {
+            const newValue = state.icu.inUse + delta;
+            if (newValue >= 0 && newValue <= state.icu.total) {
+                state.icu.inUse = newValue;
+                localStorage.setItem('icu-inUse', state.icu.inUse);
+                renderICU();
+            }
+        } else if (type === 'vent') {
+            const newValue = state.vent.inUse + delta;
+            if (newValue >= 0 && newValue <= state.vent.total) {
+                state.vent.inUse = newValue;
+                localStorage.setItem('vent-inUse', state.vent.inUse);
+                renderVent();
+            }
+        } else if (type === 'blood') {
+            const newValue = state.blood.rsrvd + delta;
+            if (newValue >= 0 && newValue <= state.blood.total_inventory) {
+                state.blood.rsrvd = newValue;
+                localStorage.setItem('blood-rsrvd', state.blood.rsrvd);
+                renderBlood();
+            }
+        }
+    }
+
+    function renderICU() {
+        const avail = state.icu.total - state.icu.inUse;
+        const cap = Math.round((state.icu.inUse / state.icu.total) * 100);
+        
+        document.getElementById('icu-inuse').innerText = state.icu.inUse;
+        document.getElementById('icu-avail').innerText = avail;
+        document.getElementById('icu-cap').innerText = `${cap}% Cap`;
+        
+        const card = document.getElementById('card-icu');
+        const capBadge = document.getElementById('icu-cap');
+        const availEl = document.getElementById('icu-avail');
+        
+        // Critical threshold: < 5 beds available or > 90% cap
+        if (cap >= 90 || avail < 5) {
+            capBadge.className = "bg-error-container px-2 py-1 rounded text-label-md font-label-md text-on-error-container";
+            capBadge.innerText = "CRITICAL";
+            availEl.classList.add('text-error');
+            availEl.classList.remove('text-primary');
+            card.classList.add('border-error');
+            card.classList.remove('border-outline-variant');
+        } else {
+            capBadge.className = "bg-surface-container px-2 py-1 rounded text-label-md font-label-md text-primary";
+            availEl.classList.add('text-primary');
+            availEl.classList.remove('text-error');
+            card.classList.remove('border-error');
+            card.classList.add('border-outline-variant');
+        }
+    }
+
+    function renderVent() {
+        const avail = state.vent.total - state.vent.inUse;
+        const cap = Math.round((state.vent.inUse / state.vent.total) * 100);
+        
+        document.getElementById('vent-inuse').innerText = state.vent.inUse;
+        document.getElementById('vent-avail').innerText = avail;
+        document.getElementById('vent-cap').innerText = `${cap}% Cap`;
+        
+        const card = document.getElementById('card-vent');
+        const capBadge = document.getElementById('vent-cap');
+        const availEl = document.getElementById('vent-avail');
+        
+        // Critical threshold: < 10 vents available or > 90% cap
+        if (cap >= 90 || avail < 10) {
+            capBadge.className = "bg-error-container px-2 py-1 rounded text-label-md font-label-md text-on-error-container";
+            capBadge.innerText = "CRITICAL";
+            availEl.classList.add('text-error');
+            availEl.classList.remove('text-primary');
+            card.classList.add('border-error');
+            card.classList.remove('border-outline-variant');
+        } else {
+            capBadge.className = "bg-surface-container px-2 py-1 rounded text-label-md font-label-md text-primary";
+            availEl.classList.add('text-primary');
+            availEl.classList.remove('text-error');
+            card.classList.remove('border-error');
+            card.classList.add('border-outline-variant');
+        }
+    }
+
+    function renderBlood() {
+        const avail = state.blood.total_inventory - state.blood.rsrvd;
+        
+        document.getElementById('blood-rsrvd').innerText = state.blood.rsrvd;
+        document.getElementById('blood-avail').innerText = avail;
+        
+        const card = document.getElementById('card-blood');
+        const statusBadge = document.getElementById('blood-status');
+        const availEl = document.getElementById('blood-avail');
+        const uEl = document.getElementById('blood-u');
+        
+        // Critical threshold: < 15 available
+        if (avail < 15) {
+            statusBadge.className = "bg-error-container text-on-error-container px-2 py-1 rounded text-label-md font-label-md";
+            statusBadge.innerText = "CRITICAL";
+            availEl.className = "text-data-mono font-data-mono text-error font-bold";
+            uEl.className = "text-data-mono font-data-mono text-error font-bold";
+            card.classList.add('border-error');
+            card.classList.remove('border-outline-variant');
+        } else {
+            statusBadge.className = "bg-surface-container px-2 py-1 rounded text-label-md font-label-md text-primary";
+            statusBadge.innerText = "STABLE";
+            availEl.className = "text-data-mono font-data-mono text-primary font-bold";
+            uEl.className = "text-data-mono font-data-mono text-primary font-bold";
+            card.classList.remove('border-error');
+            card.classList.add('border-outline-variant');
+        }
+    }
+
+    // Initial render
+    renderICU();
+    renderVent();
+    renderBlood();
+</script>
+</body></html>

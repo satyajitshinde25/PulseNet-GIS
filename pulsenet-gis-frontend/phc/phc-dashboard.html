@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHC Dashboard - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+  
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex shrink-0">
+    <div class="h-16 flex items-center px-6 border-b border-gray-200">
+      <span class="material-symbols-outlined text-blue-800 text-2xl mr-2">medical_services</span>
+      <span class="text-xl font-bold text-blue-900 tracking-tight">PulseNet-GIS</span>
+    </div>
+    
+    <div class="p-4">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Primary Health Center</div>
+      <div id="user-name-display" class="font-medium text-gray-800 mb-6 truncate">Dr. Name</div>
+      
+      <nav class="space-y-1">
+        <a href="phc-dashboard.html" data-nav="dashboard" class="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-50 text-blue-700 font-semibold transition-colors">
+          <span class="material-symbols-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="phc-referral.html" data-nav="referral" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">add_circle</span>
+          New Referral
+        </a>
+        <a href="phc-transfer.html" data-nav="transfer" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">moving</span>
+          Active Transfers
+        </a>
+        <a href="phc-history.html" data-nav="history" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">history</span>
+          History
+        </a>
+      </nav>
+    </div>
+    
+    <div class="mt-auto p-4 border-t border-gray-200">
+      <button onclick="Auth.logout()" class="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md text-red-600 hover:bg-red-50 transition-colors">
+        <span class="material-symbols-outlined">logout</span>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+    
+    <!-- Header Mobile -->
+    <header class="md:hidden h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-blue-800">medical_services</span>
+        <span class="font-bold text-blue-900">PulseNet</span>
+      </div>
+      <button onclick="Auth.logout()" class="text-gray-500">
+        <span class="material-symbols-outlined">logout</span>
+      </button>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+          <p class="text-gray-500">Overview of active referrals and system status.</p>
+        </div>
+        <a href="phc-referral.html" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium shadow-md transition-colors flex items-center gap-2 w-full md:w-auto justify-center">
+          <span class="material-symbols-outlined">add_alert</span>
+          CREATE EMERGENCY REFERRAL
+        </a>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 font-medium">Active Referrals</h3>
+            <span class="material-symbols-outlined text-blue-500 bg-blue-50 p-2 rounded-lg">vital_signs</span>
+          </div>
+          <p class="text-3xl font-bold text-gray-800" id="stat-active">0</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 font-medium">Pending Matches</h3>
+            <span class="material-symbols-outlined text-yellow-500 bg-yellow-50 p-2 rounded-lg">pending_actions</span>
+          </div>
+          <p class="text-3xl font-bold text-gray-800" id="stat-pending">0</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 font-medium">Active Transfers</h3>
+            <span class="material-symbols-outlined text-indigo-500 bg-indigo-50 p-2 rounded-lg">ambulance</span>
+          </div>
+          <p class="text-3xl font-bold text-gray-800" id="stat-transfers">0</p>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 font-medium">Completed Today</h3>
+            <span class="material-symbols-outlined text-green-500 bg-green-50 p-2 rounded-lg">task_alt</span>
+          </div>
+          <p class="text-3xl font-bold text-gray-800" id="stat-completed">2</p>
+        </div>
+      </div>
+
+      <!-- Map View -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-lg font-bold text-gray-800">Live Area Map</h2>
+        </div>
+        <div id="phc-dashboard-map" style="height: 400px; width: 100%; z-index: 0;"></div>
+      </div>
+
+      <!-- Active Referrals List -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-lg font-bold text-gray-800">Recent Referrals</h2>
+        </div>
+        <div class="divide-y divide-gray-200" id="recent-referrals-list">
+          <!-- Populated by JS -->
+          <div class="p-8 text-center text-gray-500">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script src="../js/map.js?v=3"></script>
+  <script src="js/phc.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Auth.requireRole(['PHC_DOCTOR']);
+      PHC.initDashboard();
+      
+      // Initialize Dashboard Map
+      setTimeout(async () => {
+        const map = MapService.initMap('phc-dashboard-map', [18.5204, 73.8567], 11);
+        if (map) {
+          const res = await API._req('/network');
+          if (res.success) {
+              res.data.phcs.forEach(p => MapService.addMarker(map, [p.location.lat, p.location.lng], p.name, 'phc'));
+              res.data.hospitals.forEach(h => MapService.addMarker(map, [h.location.lat, h.location.lng], h.name, 'hospital'));
+              res.data.ambulances.forEach(a => MapService.addMarker(map, [a.location.lat, a.location.lng], a.plate, 'ambulance'));
+          }
+        }
+      }, 500);
+
+      // Auto-refresh for demo purposes when localStorage changes in another window
+      window.addEventListener('storage', () => {
+        PHC.initDashboard();
+      });
+    });
+  </script>
+</body>
+</html>

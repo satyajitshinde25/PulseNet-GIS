@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --success: #10b981;
+  --warning: #f59e0b;
+  --critical: #ef4444;
+  --info: #3b82f6;
+  --neutral: #6b7280;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Status colors */
+.text-success { color: var(--success); }
+.text-warning { color: var(--warning); }
+.text-critical { color: var(--critical); }
+.text-info { color: var(--info); }
+.text-neutral { color: var(--neutral); }
+
+.bg-success { background-color: var(--success); }
+.bg-warning { background-color: var(--warning); }
+.bg-critical { background-color: var(--critical); }
+.bg-info { background-color: var(--info); }
+.bg-neutral { background-color: var(--neutral); }
+
+.bg-success-light { background-color: #d1fae5; color: #065f46; }
+.bg-warning-light { background-color: #fef3c7; color: #92400e; }
+.bg-critical-light { background-color: #fee2e2; color: #991b1b; }
+.bg-info-light { background-color: #dbeafe; color: #1e40af; }
+.bg-neutral-light { background-color: #f1f5f9; color: #475569; }
+
+/* Pulse animation for critical alerts */
+@keyframes pulse-critical {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.pulse-alert {
+  animation: pulse-critical 2s infinite;
+}
+
+/* Map sizing */
+#map {
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+  z-index: 1; /* Keep map below modals/headers */
+}
+
+/* Timeline vertical line */
+.timeline-container {
+  position: relative;
+}
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 20px;
+  width: 2px;
+  background-color: #e2e8f0;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 50px;
+  margin-bottom: 24px;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: 10px;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #fff;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.timeline-icon.active {
+  border-color: var(--info);
+  background-color: var(--info);
+}
+
+.timeline-icon.completed {
+  border-color: var(--success);
+  background-color: var(--success);
+}

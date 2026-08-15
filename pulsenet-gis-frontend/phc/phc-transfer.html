@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Active Transfer - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+  
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white border-r border-gray-200 flex flex-col hidden md:flex shrink-0">
+    <div class="h-16 flex items-center px-6 border-b border-gray-200">
+      <span class="material-symbols-outlined text-blue-800 text-2xl mr-2">medical_services</span>
+      <span class="text-xl font-bold text-blue-900 tracking-tight">PulseNet-GIS</span>
+    </div>
+    
+    <div class="p-4">
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Primary Health Center</div>
+      <div id="user-name-display" class="font-medium text-gray-800 mb-6 truncate">Dr. Name</div>
+      
+      <nav class="space-y-1">
+        <a href="phc-dashboard.html" data-nav="dashboard" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="phc-referral.html" data-nav="referral" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">add_circle</span>
+          New Referral
+        </a>
+        <a href="phc-transfer.html" data-nav="transfer" class="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-50 text-blue-700 font-semibold transition-colors">
+          <span class="material-symbols-outlined">moving</span>
+          Active Transfers
+        </a>
+        <a href="phc-history.html" data-nav="history" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 transition-colors">
+          <span class="material-symbols-outlined">history</span>
+          History
+        </a>
+      </nav>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+    <header class="md:hidden h-16 bg-white border-b border-gray-200 flex items-center px-4 shrink-0 gap-4">
+      <a href="phc-dashboard.html" class="text-gray-500 hover:text-blue-600">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <span class="font-bold text-gray-800">Active Transfer</span>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50">
+      <div class="max-w-4xl mx-auto">
+        
+        <div class="flex items-center justify-between mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900" id="patient-name">Patient Name</h1>
+            <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500 mt-1">
+              <span id="patient-condition">Condition</span>
+              <span>&bull;</span>
+              <span class="font-medium" id="patient-severity">Severity</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-medium text-gray-500">Ref ID</p>
+            <p class="text-lg font-bold text-blue-900" id="display-ref-id">...</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+          <h2 class="text-lg font-bold text-gray-800 mb-6">Transfer Timeline</h2>
+          
+          <div class="timeline-container" id="timeline">
+            <!-- Timeline items injected by JS -->
+          </div>
+          
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      Auth.requireRole(['PHC_DOCTOR']);
+      
+      const urlParams = new URLSearchParams(window.location.search);
+      let refId = urlParams.get('id');
+      
+      if (!refId) {
+        // If no ID passed, check if there's an active one that isn't completed
+        const res = await API.getAllReferrals();
+        const refs = res.success ? res.data : [];
+        const active = refs.find(r => !['COMPLETED', 'CANCELLED'].includes(r.status));
+        if (active) {
+          refId = active.id;
+        } else {
+          document.getElementById('patient-name').textContent = "No Active Transfers";
+          document.getElementById('patient-condition').textContent = "Everything is quiet";
+          document.getElementById('patient-severity').textContent = "Normal";
+          document.getElementById('patient-severity').className = "font-medium";
+          document.getElementById('display-ref-id').textContent = "-";
+          document.getElementById('timeline').innerHTML = "<div class='text-gray-500 text-center py-8'>You currently have no active emergency transfers.</div>";
+          return;
+        }
+      }
+      
+      // Auto refresh loop to simulate real-time updates
+      setInterval(renderTimeline, 2000);
+      renderTimeline();
+
+      async function renderTimeline() {
+        const res = await API.getReferral(refId);
+        if (!res.success) return;
+        
+        const r = res.data;
+        document.getElementById('display-ref-id').textContent = r.id;
+        document.getElementById('patient-name').textContent = r.patientId;
+        document.getElementById('patient-condition').textContent = r.condition;
+        
+        const sevEl = document.getElementById('patient-severity');
+        sevEl.textContent = r.severity;
+        if(r.severity === 'Critical') sevEl.className = 'font-bold text-red-600 pulse-alert px-2 rounded';
+
+        // Check rejection route
+        if (r.status === 'REJECTED_BY_HOSPITAL') {
+          window.location.href = `phc-matching.html?id=${r.id}`;
+          return;
+        }
+
+        const stages = [
+          { key: 'created', label: 'Referral Created', done: true, active: false, icon: 'edit_document' },
+          { key: 'matched', label: 'Hospitals Matched', done: true, active: false, icon: 'fact_check' },
+          { key: 'selected', label: 'Hospital Selected & Notified', done: !!r.selectedHospitalId, active: r.status === 'WAITING_HOSPITAL_ACCEPTANCE', icon: 'domain' },
+          { key: 'accepted', label: 'Hospital Accepted & Resources Reserved', done: ['ACCEPTED', 'AMBULANCE_DISPATCHED', 'ROUTING', 'COMPLETED'].includes(r.status), active: false, icon: 'check_circle' },
+          { key: 'dispatch', label: 'Ambulance Dispatch Authorized', done: ['ACCEPTED', 'AMBULANCE_DISPATCHED', 'ROUTING', 'COMPLETED'].includes(r.status), active: r.status === 'ACCEPTED', icon: 'emergency' },
+          { key: 'ambulance', label: 'Driver Accepted & En Route', done: ['AMBULANCE_DISPATCHED', 'ROUTING', 'COMPLETED'].includes(r.status), active: ['AMBULANCE_DISPATCHED', 'ROUTING'].includes(r.status), icon: 'ambulance' },
+          { key: 'completed', label: 'Transfer Completed', done: r.status === 'COMPLETED', active: r.status === 'COMPLETED', icon: 'task_alt' },
+        ];
+
+        let html = '';
+        stages.forEach((stage, index) => {
+          
+          let iconClass = 'text-gray-300';
+          let wrapClass = '';
+          let textClass = 'text-gray-400';
+          let spinner = '';
+
+          if (stage.done) {
+            iconClass = 'text-green-500';
+            wrapClass = 'completed';
+            textClass = 'text-gray-900 font-medium';
+          }
+          
+          if (stage.active && !stage.done) {
+            iconClass = 'text-blue-500';
+            wrapClass = 'active';
+            textClass = 'text-blue-800 font-bold';
+            spinner = '<div class="mt-2 w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>';
+          }
+
+          if (stage.key === 'dispatch' && stage.done) {
+            // Emphasize the rule: Resources reserved -> Ambulance Dispatch Authorized
+            textClass += ' text-green-700 bg-green-50 p-2 rounded inline-block mt-1';
+          }
+
+          html += `
+            <div class="timeline-item">
+              <div class="timeline-icon ${wrapClass}">
+                <span class="material-symbols-outlined text-[14px] ${iconClass}">${stage.icon}</span>
+              </div>
+              <div class="${textClass}">${stage.label}</div>
+              ${spinner}
+              ${stage.active && stage.key === 'selected' ? '<p class="text-sm text-yellow-600 mt-1">Waiting for hospital manager verification...</p>' : ''}
+              ${stage.active && stage.key === 'dispatch' ? '<p class="text-sm text-blue-600 mt-1">Searching for available ambulance...</p>' : ''}
+            </div>
+          `;
+        });
+
+        document.getElementById('timeline').innerHTML = html;
+      }
+    });
+  </script>
+</body>
+</html>

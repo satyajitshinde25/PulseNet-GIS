@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Reservations - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden">
+  <aside class="w-64 bg-indigo-900 text-white border-r border-indigo-800 flex flex-col hidden md:flex shrink-0">
+    <div class="h-16 flex items-center px-6 border-b border-indigo-800 bg-indigo-950">
+      <span class="material-symbols-outlined text-blue-400 text-2xl mr-2">domain</span>
+      <span class="text-xl font-bold tracking-tight">PulseNet-GIS</span>
+    </div>
+    <div class="p-4">
+            <nav class="space-y-1">
+        <a href="hospital-dashboard.html" data-nav="dashboard" class="flex items-center gap-3 px-3 py-2 rounded-md text-indigo-200 hover:bg-indigo-800 transition-colors">
+          <span class="material-symbols-outlined">dashboard</span> Dashboard
+        </a>
+        <a href="hospital-referrals.html" data-nav="referrals" class="flex items-center gap-3 px-3 py-2 rounded-md text-indigo-200 hover:bg-indigo-800 transition-colors">
+          <span class="material-symbols-outlined">move_to_inbox</span> Incoming Referrals
+        </a>
+        <a href="hospital-resources.html" data-nav="resources" class="flex items-center gap-3 px-3 py-2 rounded-md text-indigo-200 hover:bg-indigo-800 transition-colors">
+          <span class="material-symbols-outlined">inventory_2</span> Live Resources
+        </a>
+        <a href="hospital-reservations.html" data-nav="reservations" class="flex items-center gap-3 px-3 py-2 rounded-md bg-indigo-800 text-white font-semibold transition-colors">
+          <span class="material-symbols-outlined">book_online</span> Reservations
+        </a>
+        <a href="hospital-history.html" data-nav="history" class="flex items-center gap-3 px-3 py-2 rounded-md text-indigo-200 hover:bg-indigo-800 transition-colors">
+          <span class="material-symbols-outlined">history</span> History
+        </a>
+      </nav>
+    </div>
+  </aside>
+  <main class="flex-1 flex flex-col overflow-hidden relative">
+    <header class="md:hidden h-16 bg-indigo-900 text-white flex items-center px-4 shrink-0 gap-4">
+      <a href="hospital-dashboard.html" class="text-indigo-200 hover:text-white">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+      <span class="font-bold">Reservations</span>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50">
+      <h1 class="text-2xl font-bold text-gray-800 mb-6">Active Resource Reservations</h1>
+      <p class="text-gray-500 mb-6">Patients currently en route with resources reserved.</p>
+      
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="divide-y divide-gray-200" id="hospital-reservations-list">
+          <div class="p-8 text-center text-gray-500">Loading...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script src="../js/app.js?v=3"></script>
+  <script src="../js/api.js?v=3"></script>
+  <script src="../js/auth.js?v=3"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = Auth.requireRole(['HOSPITAL_MANAGER']);
+      if(user) {
+        const res = await API.getAllReferrals();
+        const referrals = res.success ? res.data : [];
+        // Find referrals en route
+        const active = referrals.filter(r => r.selectedHospitalId === user.hospitalId && ['AMBULANCE_DISPATCHED', 'ROUTING'].includes(r.status));
+        
+        const listEl = document.getElementById('hospital-reservations-list');
+        
+        if (active.length === 0) {
+          listEl.innerHTML = `<div class="p-8 text-center text-gray-500">No active reservations found.</div>`;
+          return;
+        }
+        
+        const sorted = active.sort((a,b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
+        
+        listEl.innerHTML = sorted.map(r => {
+          const reqs = [];
+          if(r.resources.icu) reqs.push('ICU');
+          if(r.resources.ventilator) reqs.push('Ventilator');
+          if(r.resources.general) reqs.push('General');
+          if(r.resources.blood) reqs.push(`Blood (${r.resources.bloodUnits})`);
+          
+          return `
+          <div class="p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h4 class="font-bold text-gray-900">${r.patientId}</h4>
+              <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                <span>Ref ID: ${r.id}</span>
+                <span>&bull;</span>
+                <span class="text-indigo-600 font-medium">Ambulance: ${r.ambulanceId || 'Assigned'}</span>
+              </div>
+              <div class="mt-2 text-sm font-medium text-gray-700 bg-gray-100 inline-block px-2 py-1 rounded">
+                Reserved: ${reqs.join(', ') || 'None'}
+              </div>
+            </div>
+            <div>
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 pulse-alert">
+                ${r.status.replace(/_/g, ' ')}
+              </span>
+            </div>
+          </div>
+        `}).join('');
+      }
+    });
+  </script>
+</body>
+</html>
