@@ -13,34 +13,31 @@
 </head>
 <body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
   
-  <header class="h-16 bg-red-800 text-white flex items-center justify-between px-4 shrink-0 shadow-md z-10">
+  <header class="h-16 bg-red-800 text-white flex items-center justify-between px-4 sm:px-6 shrink-0 shadow-md z-10">
     <div class="flex flex-col">
-      <span class="font-bold tracking-wide">Driver App</span>
-      <span class="text-xs text-red-200" id="unit-name-display">Unit Name</span>
-    </div>
-    <div class="flex items-center gap-4">
-      <span class="material-symbols-outlined">menu</span>
+      <span class="font-bold tracking-wide text-lg">Driver App</span>
+      <span class="text-xs sm:text-sm text-red-200" id="unit-name-display">Unit Name</span>
     </div>
   </header>
 
-  <main class="flex-1 flex flex-col p-4 relative">
+  <main class="flex-1 flex flex-col p-3 sm:p-4 md:p-6 relative">
     
     <!-- Status Control -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-4 text-center">
-      <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Current Status</h2>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 text-center">
+      <h2 class="text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 sm:mb-4">Current Status</h2>
       
-      <div class="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-1">
-        <button id="btn-status-avail" onclick="Ambulance.setStatus('AVAILABLE')" class="px-6 py-2 rounded-md font-bold text-sm transition-colors bg-green-500 text-white shadow-sm">
+      <div class="flex w-full sm:inline-flex sm:w-auto rounded-lg border border-gray-200 bg-gray-50 p-1 gap-1">
+        <button id="btn-status-avail" onclick="Ambulance.setStatus('AVAILABLE')" class="flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-2 rounded-md font-bold text-sm transition-colors bg-green-500 text-white shadow-sm">
           AVAILABLE
         </button>
-        <button id="btn-status-busy" onclick="Ambulance.setStatus('BUSY')" class="px-6 py-2 rounded-md font-bold text-sm transition-colors text-gray-600 hover:bg-gray-200">
+        <button id="btn-status-busy" onclick="Ambulance.setStatus('BUSY')" class="flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-2 rounded-md font-bold text-sm transition-colors text-gray-600 hover:bg-gray-200">
           BUSY
         </button>
       </div>
     </div>
 
     <div class="flex-1 rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
-      <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow font-bold text-gray-700 flex items-center gap-2">
+      <div class="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-auto z-10 bg-white/95 backdrop-blur px-4 py-3 sm:py-2 rounded-lg shadow-md font-bold text-gray-700 flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base border border-gray-100">
         <span class="material-symbols-outlined text-blue-500 animate-pulse">radar</span>
         Waiting for dispatch...
       </div>
