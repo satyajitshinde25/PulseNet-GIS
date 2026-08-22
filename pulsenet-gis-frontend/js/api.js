@@ -1,17 +1,20 @@
-const API_BASE_URL = 'https://pulsenet-gis.onrender.com/api/v1';
+const API_BASE_URL = '/api/v1';
 
 const API = {
   // Helpers
   _req: async (endpoint, method = 'GET', body = null) => {
+    const token = localStorage.getItem('pulsenet_token');
     const options = {
       method,
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
     };
-    if (body) {
-      options.body = JSON.stringify(body);
-    }
+    if (body) options.body = JSON.stringify(body);
     try {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, options);
+      if (res.status === 401) { Auth.logout(); return { success: false, message: 'Session expired' }; }
       return await res.json();
     } catch (err) {
       console.error(`API Error on ${endpoint}:`, err);

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - PulseNet-GIS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 240px;
+      background: #0f1e3d;
+      border-right: 1px solid rgba(255,255,255,.07);
+      display: flex; flex-direction: column;
+      z-index: 100;
+    }
+    .sidebar-logo {
+      padding: 24px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .sidebar-logo h2 { color: #93c5fd; font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .sidebar-logo p { color: #475569; font-size: 11px; margin-top: 2px; }
+    .shield-icon { font-size: 28px; margin-bottom: 8px; }
+    nav { flex: 1; padding: 16px 12px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px; cursor: pointer;
+      color: #94a3b8; font-size: 13px; font-weight: 500;
+      transition: all .15s; margin-bottom: 4px;
+      border: none; background: none; width: 100%; text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: #e2e8f0; }
+    .nav-item.active { background: rgba(59,130,246,.2); color: #93c5fd; }
+    .nav-badge {
+      margin-left: auto; background: #ef4444; color: white;
+      font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px;
+    }
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+    .logout-btn {
+      width: 100%; padding: 9px; border-radius: 8px;
+      background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2);
+      color: #fca5a5; font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all .15s;
+    }
+    .logout-btn:hover { background: rgba(239,68,68,.25); }
+
+    /* ── Main ── */
+    .main { margin-left: 240px; padding: 32px; }
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .top-bar h1 { font-size: 22px; font-weight: 700; color: #f1f5f9; }
+    .top-bar p { color: #64748b; font-size: 13px; margin-top: 2px; }
+    .admin-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.2);
+      border-radius: 20px; padding: 6px 14px;
+    }
+    .admin-chip span { color: #93c5fd; font-size: 13px; font-weight: 500; }
+
+    /* ── Stat Cards ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+      padding: 20px 24px;
+    }
+    .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+    .stat-value { font-size: 32px; font-weight: 700; margin-top: 4px; }
+    .stat-card.pending .stat-value { color: #f59e0b; }
+    .stat-card.approved .stat-value { color: #22c55e; }
+    .stat-card.rejected .stat-value { color: #ef4444; }
+    .stat-card.phc .stat-value { color: #60a5fa; }
+    .stat-card.hosp .stat-value { color: #a78bfa; }
+    .stat-card.amb .stat-value { color: #34d399; }
+
+    /* ── Filter bar ── */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 20px; }
+    .filter-btn {
+      padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.04);
+      color: #94a3b8; cursor: pointer; transition: all .15s;
+    }
+    .filter-btn.active { background: #1d4ed8; border-color: #2563eb; color: white; }
+    .filter-btn:hover:not(.active) { background: rgba(255,255,255,.08); color: #e2e8f0; }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 14px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: rgba(255,255,255,.04);
+      padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: .5px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.03); }
+    td { padding: 14px 16px; font-size: 13px; vertical-align: top; }
+    .role-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; letter-spacing: .5px;
+    }
+    .role-PHC { background: rgba(96,165,250,.15); color: #93c5fd; }
+    .role-HOSPITAL { background: rgba(167,139,250,.15); color: #c4b5fd; }
+    .role-AMBULANCE { background: rgba(52,211,153,.15); color: #6ee7b7; }
+    .status-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 6px;
+      font-size: 11px; font-weight: 600;
+    }
+    .status-PENDING { background: rgba(245,158,11,.15); color: #fcd34d; }
+    .status-APPROVED { background: rgba(34,197,94,.15); color: #86efac; }
+    .status-REJECTED { background: rgba(239,68,68,.15); color: #fca5a5; }
+    .info-text { color: #94a3b8; font-size: 12px; }
+    .name-text { color: #f1f5f9; font-weight: 500; }
+
+    /* ── Action buttons ── */
+    .action-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn-approve {
+      padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.2);
+      color: #86efac; cursor: pointer; transition: all .15s;
+    }
+    .btn-approve:hover { background: rgba(34,197,94,.3); }
+    .btn-reject {
+      padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.2);
+      color: #fca5a5; cursor: pointer; transition: all .15s;
+    }
+    .btn-reject:hover { background: rgba(239,68,68,.3); }
+    .btn-view {
+      padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      background: rgba(59,130,246,.15); border: 1px solid rgba(59,130,246,.2);
+      color: #93c5fd; cursor: pointer; transition: all .15s;
+    }
+    .btn-view:hover { background: rgba(59,130,246,.3); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.7); z-index: 200;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #1e293b; border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px; max-width: 560px; width: 100%;
+      box-shadow: 0 25px 60px rgba(0,0,0,.5); overflow: hidden;
+    }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 600; color: #f1f5f9; }
+    .modal-close { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+    .modal-body { padding: 24px; max-height: 70vh; overflow-y: auto; }
+    .detail-row { display: flex; margin-bottom: 12px; }
+    .detail-key { color: #64748b; font-size: 13px; width: 160px; flex-shrink: 0; }
+    .detail-val { color: #f1f5f9; font-size: 13px; font-weight: 500; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid rgba(255,255,255,.07);
+      display: flex; gap: 8px; justify-content: flex-end;
+    }
+    textarea {
+      width: 100%; padding: 10px 14px;
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px; color: #e2e8f0; font-size: 13px; font-family: inherit;
+      resize: vertical; min-height: 80px;
+    }
+    textarea:focus { outline: none; border-color: #3b82f6; }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 60px 20px; color: #475569; }
+    .empty p { font-size: 14px; margin-top: 8px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1e293b; border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; padding: 12px 18px; font-size: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4); display: none; z-index: 300;
+    }
+    .toast.show { display: block; animation: fadeIn .3s; }
+    .toast.success { border-color: rgba(34,197,94,.3); color: #86efac; }
+    .toast.error { border-color: rgba(239,68,68,.3); color: #fca5a5; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="shield-icon">🛡️</div>
+    <h2>PulseNet Admin</h2>
+    <p>Control Panel</p>
+  </div>
+  <nav>
+    <button class="nav-item active" onclick="setFilter(null, this)">
+      📋 All Requests
+      <span class="nav-badge" id="badge-all">0</span>
+    </button>
+    <button class="nav-item" onclick="setFilter('PENDING', this)">
+      ⏳ Pending
+      <span class="nav-badge" id="badge-pending" style="background:#f59e0b">0</span>
+    </button>
+    <button class="nav-item" onclick="setFilter('APPROVED', this)">
+      ✅ Approved
+    </button>
+    <button class="nav-item" onclick="setFilter('REJECTED', this)">
+      ❌ Rejected
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <p style="font-size:11px;color:#475569;margin-bottom:8px" id="admin-name">Administrator</p>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+  <div class="top-bar">
+    <div>
+      <h1>Registration Requests</h1>
+      <p>Review and approve or reject incoming registrations</p>
+    </div>
+    <div class="admin-chip">
+      <span>🔒</span>
+      <span id="admin-chip-name">Admin</span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card pending"><div class="stat-label">Pending Approval</div><div class="stat-value" id="s-pending">—</div></div>
+    <div class="stat-card approved"><div class="stat-label">Approved</div><div class="stat-value" id="s-approved">—</div></div>
+    <div class="stat-card rejected"><div class="stat-label">Rejected</div><div class="stat-value" id="s-rejected">—</div></div>
+    <div class="stat-card phc"><div class="stat-label">Active PHCs</div><div class="stat-value" id="s-phcs">—</div></div>
+    <div class="stat-card hosp"><div class="stat-label">Active Hospitals</div><div class="stat-value" id="s-hospitals">—</div></div>
+    <div class="stat-card amb"><div class="stat-label">Active Ambulances</div><div class="stat-value" id="s-ambulances">—</div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Type</th>
+          <th>Name / Details</th>
+          <th>Contact</th>
+          <th>Submitted</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbl-body">
+        <tr><td colspan="7"><div class="empty"><span class="spinner"></span><p>Loading...</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Registration Details</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const token = localStorage.getItem('admin_token');
+if (!token) window.location.replace('/admin/login.html');
+
+const user = JSON.parse(localStorage.getItem('admin_user') || '{}');
+document.getElementById('admin-name').textContent = user.name || 'Admin';
+document.getElementById('admin-chip-name').textContent = user.name || 'Admin';
+
+let currentFilter = null;
+let allData = [];
+
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+function logout() {
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_user');
+  window.location.replace('/admin/login.html');
+}
+
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+  el.className = `toast show ${type}`;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+async function loadStats() {
+  try {
+    const res = await fetch('/admin/api/stats', { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const { data } = await res.json();
+    document.getElementById('s-pending').textContent = data.pending;
+    document.getElementById('s-approved').textContent = data.approved;
+    document.getElementById('s-rejected').textContent = data.rejected;
+    document.getElementById('s-phcs').textContent = data.phcs;
+    document.getElementById('s-hospitals').textContent = data.hospitals;
+    document.getElementById('s-ambulances').textContent = data.ambulances;
+    document.getElementById('badge-pending').textContent = data.pending;
+    document.getElementById('badge-all').textContent = data.pending + data.approved + data.rejected;
+  } catch(e) { console.error(e); }
+}
+
+async function loadRegistrations() {
+  try {
+    const url = currentFilter ? `/admin/api/registrations?status=${currentFilter}` : '/admin/api/registrations';
+    const res = await fetch(url, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    const { data } = await res.json();
+    allData = data;
+    renderTable(data);
+  } catch(e) {
+    document.getElementById('tbl-body').innerHTML = `<tr><td colspan="7"><div class="empty">⚠️<p>Failed to load. Is the server running?</p></div></td></tr>`;
+  }
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tbl-body');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty">📭<p>No registrations found.</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(r => {
+    const d = r.data;
+    const name = d.name || d.driver_name || '—';
+    const sub = d.doctor_name ? `Dr. ${d.doctor_name}` : (d.ambulance_no || '');
+    const date = new Date(r.submitted_at + 'Z').toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+    const actions = r.status === 'PENDING'
+      ? `<div class="action-btns">
+           <button class="btn-view" onclick="showDetail(${r.id})">View</button>
+           <button class="btn-approve" onclick="doAction(${r.id},'approve')">Approve</button>
+           <button class="btn-reject" onclick="showReject(${r.id})">Reject</button>
+         </div>`
+      : `<button class="btn-view" onclick="showDetail(${r.id})">Details</button>`;
+    return `<tr>
+      <td style="color:#475569">#${r.id}</td>
+      <td><span class="role-badge role-${r.role}">${r.role}</span></td>
+      <td><div class="name-text">${name}</div><div class="info-text">${sub}</div></td>
+      <td><div class="info-text">${r.email}</div></td>
+      <td><div class="info-text">${date}</div></td>
+      <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadRegistrations();
+}
+
+function showDetail(id) {
+  const r = allData.find(x => x.id === id);
+  if (!r) return;
+  const d = r.data;
+  document.getElementById('modal-title').textContent = `${r.role} Registration #${r.id}`;
+  const rows = Object.entries(d)
+    .filter(([k]) => k !== 'password')
+    .map(([k, v]) => `<div class="detail-row"><div class="detail-key">${k.replace(/_/g,' ')}</div><div class="detail-val">${v ?? '—'}</div></div>`)
+    .join('');
+  const note = r.admin_note ? `<div style="margin-top:12px;padding:10px;background:rgba(255,255,255,.04);border-radius:8px"><div class="detail-key">Admin Note</div><div class="detail-val">${r.admin_note}</div></div>` : '';
+  document.getElementById('modal-body').innerHTML = rows + note;
+  const footer = document.getElementById('modal-footer');
+  footer.innerHTML = r.status === 'PENDING'
+    ? `<button class="btn-reject" onclick="closeModal();showReject(${id})">Reject</button>
+       <button class="btn-approve" onclick="closeModal();doAction(${id},'approve')">Approve & Send Credentials</button>`
+    : `<button class="btn-view" onclick="closeModal()">Close</button>`;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function showReject(id) {
+  const r = allData.find(x => x.id === id);
+  document.getElementById('modal-title').textContent = `Reject Registration #${id}`;
+  document.getElementById('modal-body').innerHTML = `
+    <p style="color:#94a3b8;font-size:13px;margin-bottom:12px">Optionally provide a reason. This will be included in the rejection email sent to the applicant.</p>
+    <textarea id="reject-reason" placeholder="Reason for rejection (optional)..."></textarea>`;
+  document.getElementById('modal-footer').innerHTML =
+    `<button class="btn-view" onclick="closeModal()">Cancel</button>
+     <button class="btn-reject" onclick="doReject(${id})">Confirm Rejection</button>`;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+}
+
+async function doAction(id, action) {
+  try {
+    const res = await fetch(`/admin/api/registrations/${id}/${action}`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast(data.message, 'success');
+      await Promise.all([loadStats(), loadRegistrations()]);
+    } else {
+      toast(data.detail || 'Action failed', 'error');
+    }
+  } catch(e) { toast('Network error', 'error'); }
+}
+
+async function doReject(id) {
+  const reason = document.getElementById('reject-reason').value;
+  closeModal();
+  try {
+    const res = await fetch(`/admin/api/registrations/${id}/reject`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ reason })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast(data.message, 'success');
+      await Promise.all([loadStats(), loadRegistrations()]);
+    } else {
+      toast(data.detail || 'Rejection failed', 'error');
+    }
+  } catch(e) { toast('Network error', 'error'); }
+}
+
+// Close modal on overlay click
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Init
+loadStats();
+loadRegistrations();
+// Auto-refresh every 30s
+setInterval(() => { loadStats(); loadRegistrations(); }, 30000);
+</script>
+</body>
+</html>

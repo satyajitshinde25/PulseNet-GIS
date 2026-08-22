@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - PulseNet-GIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .tab-btn { transition: all .2s; cursor: pointer; }
+    .tab-btn.active { background: #1e3a8a; color: white; }
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+    .label { display:block; font-size:.8rem; font-weight:500; color:#374151; margin-bottom:.25rem; }
+    .inp { width:100%; padding:.5rem .75rem; border:1px solid #d1d5db; border-radius:.5rem; font-size:.875rem; background:#fff; transition: border .15s; }
+    .inp:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.15); }
+    .inp[readonly] { background:#f9fafb; color:#6b7280; }
+    .submit-btn { width:100%; background:#1e3a8a; color:white; font-weight:600; padding:.75rem; border-radius:.5rem; font-size:.9rem; cursor:pointer; transition:background .2s; margin-top:.5rem; border:none; }
+    .submit-btn:hover { background:#1e40af; }
+    .submit-btn:disabled { background:#9ca3af; cursor:not-allowed; }
+    .pw-rule { font-size:.73rem; color:#9ca3af; }
+    .pw-rule.ok { color:#16a34a; }
+    .geocode-dropdown { position:absolute; left:0; right:0; z-index:50; max-height:200px; overflow-y:auto; }
+    .geocode-option { padding:.5rem .75rem; cursor:pointer; font-size:.8rem; border-bottom:1px solid #f3f4f6; background:white; }
+    .geocode-option:hover { background:#eff6ff; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-start justify-center py-10 px-4">
+
+<div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+  <!-- Header -->
+  <div class="bg-blue-900 px-8 py-5 flex items-center gap-4">
+    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-blue-900 text-2xl">medical_services</span>
+    </div>
+    <div>
+      <h1 class="text-xl font-bold text-white">PULSENET-GIS</h1>
+      <p class="text-blue-200 text-sm">New Entity Registration</p>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex border-b border-gray-200 bg-gray-50">
+    <button class="tab-btn active flex-1 py-3 text-sm font-semibold" onclick="switchTab('phc',this)">
+      PHC / Doctor
+    </button>
+    <button class="tab-btn flex-1 py-3 text-sm font-semibold border-l border-gray-200" onclick="switchTab('hospital',this)">
+      Hospital
+    </button>
+    <button class="tab-btn flex-1 py-3 text-sm font-semibold border-l border-gray-200" onclick="switchTab('ambulance',this)">
+      Ambulance
+    </button>
+  </div>
+
+  <div class="p-8">
+    <!-- Feedback -->
+    <div id="global-error" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg"></div>
+    <div id="global-success" class="hidden mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg"></div>
+
+    <!-- PHC FORM -->
+    <form id="form-phc" class="form-panel active space-y-4" onsubmit="submitForm(event,'phc')">
+      <h2 class="text-lg font-semibold text-gray-800">PHC Registration</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="label">PHC / Facility Name *</label>
+          <input type="text" name="name" required placeholder="e.g. Mulshi Rural PHC" class="inp">
+        </div>
+        <div>
+          <label class="label">Doctor / In-charge Name *</label>
+          <input type="text" name="doctor_name" required placeholder="Dr. Rajesh Sharma" class="inp">
+        </div>
+        <div>
+          <label class="label">PHC Phone *</label>
+          <input type="tel" name="phc_phone" required placeholder="+91 98765 43210" class="inp">
+        </div>
+        <div>
+          <label class="label">Doctor's Phone *</label>
+          <input type="tel" name="doctor_phone" required placeholder="+91 98765 43210" class="inp">
+        </div>
+        <div>
+          <label class="label">Opening Time *</label>
+          <input type="time" name="opening_time" required class="inp">
+        </div>
+        <div>
+          <label class="label">Closing Time *</label>
+          <input type="time" name="closing_time" required class="inp">
+        </div>
+        <div class="col-span-2">
+          <label class="label">Exact Address / Location *</label>
+          <div class="relative">
+            <input type="text" id="phc-addr-search" placeholder="Type address to search (min 3 chars)..." class="inp pr-24" oninput="doGeocode('phc')" autocomplete="off">
+            <button type="button" onclick="useGPS('phc')" class="absolute right-2 top-1.5 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">My GPS</button>
+            <div id="phc-addr-results" class="geocode-dropdown hidden border border-gray-200 rounded-lg shadow-lg mt-1"></div>
+          </div>
+          <input type="hidden" name="address" id="phc-address" required>
+          <div class="flex gap-3 mt-2">
+            <input type="number" step="any" name="lat" id="phc-lat" required placeholder="Latitude" class="inp flex-1" readonly>
+            <input type="number" step="any" name="lng" id="phc-lng" required placeholder="Longitude" class="inp flex-1" readonly>
+          </div>
+          <p id="phc-addr-label" class="text-xs text-green-600 mt-1 hidden"></p>
+        </div>
+        <div>
+          <label class="label">Login Email *</label>
+          <input type="email" name="email" required placeholder="doctor@phc.gov.in" class="inp">
+        </div>
+        <div>
+          <label class="label">Password *</label>
+          <input type="password" name="password" required placeholder="Min 8 chars" class="inp" oninput="checkPW(this,'phc')">
+        </div>
+        <div class="col-span-2">
+          <div class="grid grid-cols-2 gap-1 mt-1">
+            <p class="pw-rule" id="phc-len">x  Min 8 characters</p>
+            <p class="pw-rule" id="phc-upper">x  One uppercase letter</p>
+            <p class="pw-rule" id="phc-digit">x  One digit</p>
+            <p class="pw-rule" id="phc-special">x  One special character</p>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">Register PHC</button>
+    </form>
+
+    <!-- HOSPITAL FORM -->
+    <form id="form-hospital" class="form-panel space-y-4" onsubmit="submitForm(event,'hospital')">
+      <h2 class="text-lg font-semibold text-gray-800">Hospital Registration</h2>
+      <p class="text-xs text-blue-700 bg-blue-50 border border-blue-100 p-2 rounded">All resource counts (ICU, Ventilator, General beds, Blood units) start at 0. Staff updates them from the dashboard.</p>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="col-span-2">
+          <label class="label">Hospital Name *</label>
+          <input type="text" name="name" required placeholder="e.g. Ruby Hall Clinic" class="inp">
+        </div>
+        <div>
+          <label class="label">Hospital Phone *</label>
+          <input type="tel" name="hospital_phone" required placeholder="+91 98765 43210" class="inp">
+        </div>
+        <div>
+          <label class="label">Emergency Contact Phone *</label>
+          <input type="tel" name="emergency_phone" required placeholder="+91 98765 43210" class="inp">
+        </div>
+        <div>
+          <label class="label">Opening Time *</label>
+          <input type="time" name="opening_time" required class="inp">
+        </div>
+        <div>
+          <label class="label">Closing Time *</label>
+          <input type="time" name="closing_time" required class="inp">
+        </div>
+        <div class="col-span-2">
+          <label class="label">Exact Address / Location *</label>
+          <div class="relative">
+            <input type="text" id="hosp-addr-search" placeholder="Type address to search (min 3 chars)..." class="inp pr-24" oninput="doGeocode('hosp')" autocomplete="off">
+            <button type="button" onclick="useGPS('hosp')" class="absolute right-2 top-1.5 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">My GPS</button>
+            <div id="hosp-addr-results" class="geocode-dropdown hidden border border-gray-200 rounded-lg shadow-lg mt-1"></div>
+          </div>
+          <input type="hidden" name="address" id="hosp-address" required>
+          <div class="flex gap-3 mt-2">
+            <input type="number" step="any" name="lat" id="hosp-lat" required placeholder="Latitude" class="inp flex-1" readonly>
+            <input type="number" step="any" name="lng" id="hosp-lng" required placeholder="Longitude" class="inp flex-1" readonly>
+          </div>
+          <p id="hosp-addr-label" class="text-xs text-green-600 mt-1 hidden"></p>
+        </div>
+        <div>
+          <label class="label">Login Email *</label>
+          <input type="email" name="email" required placeholder="manager@hospital.in" class="inp">
+        </div>
+        <div>
+          <label class="label">Password *</label>
+          <input type="password" name="password" required placeholder="Min 8 chars" class="inp" oninput="checkPW(this,'hosp')">
+        </div>
+        <div class="col-span-2">
+          <div class="grid grid-cols-2 gap-1 mt-1">
+            <p class="pw-rule" id="hosp-len">x  Min 8 characters</p>
+            <p class="pw-rule" id="hosp-upper">x  One uppercase letter</p>
+            <p class="pw-rule" id="hosp-digit">x  One digit</p>
+            <p class="pw-rule" id="hosp-special">x  One special character</p>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">Register Hospital</button>
+    </form>
+
+    <!-- AMBULANCE FORM -->
+    <form id="form-ambulance" class="form-panel space-y-4" onsubmit="submitForm(event,'ambulance')">
+      <h2 class="text-lg font-semibold text-gray-800">Ambulance Registration</h2>
+      <p class="text-xs text-blue-700 bg-blue-50 border border-blue-100 p-2 rounded">Once logged in, the app will continuously share your GPS location every 10 seconds for real-time tracking.</p>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="label">Driver's Full Name *</label>
+          <input type="text" name="driver_name" required placeholder="Ramesh Kumar" class="inp">
+        </div>
+        <div>
+          <label class="label">Driver's Phone No. *</label>
+          <input type="tel" name="driver_phone" required placeholder="+91 98765 43210" class="inp">
+        </div>
+        <div class="col-span-2">
+          <label class="label">Ambulance Registration No. *</label>
+          <input type="text" name="ambulance_no" required placeholder="MH-12-AB-1234" class="inp" style="text-transform:uppercase">
+        </div>
+        <div>
+          <label class="label">Login Email *</label>
+          <input type="email" name="email" required placeholder="driver@ambulance.in" class="inp">
+        </div>
+        <div>
+          <label class="label">Password *</label>
+          <input type="password" name="password" required placeholder="Min 8 chars" class="inp" oninput="checkPW(this,'amb')">
+        </div>
+        <div class="col-span-2">
+          <div class="grid grid-cols-2 gap-1 mt-1">
+            <p class="pw-rule" id="amb-len">x  Min 8 characters</p>
+            <p class="pw-rule" id="amb-upper">x  One uppercase letter</p>
+            <p class="pw-rule" id="amb-digit">x  One digit</p>
+            <p class="pw-rule" id="amb-special">x  One special character</p>
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="submit-btn">Register Ambulance</button>
+    </form>
+
+    <p class="text-center text-sm text-gray-500 mt-6">
+      Already have an account?
+      <a href="/login.html" class="text-blue-600 font-medium hover:underline">Sign In</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  const timers = {};
+
+  function switchTab(role, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.form-panel').forEach(f => f.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('form-' + role).classList.add('active');
+    ['global-error','global-success'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  }
+
+  function checkPW(input, prefix) {
+    const v = input.value;
+    const rules = [
+      [prefix+'-len',   v.length >= 8,              'Min 8 characters'],
+      [prefix+'-upper', /[A-Z]/.test(v),             'One uppercase letter'],
+      [prefix+'-digit', /[0-9]/.test(v),             'One digit'],
+      [prefix+'-special', /[!@#$%^&*()\-_=+\[\]{}|;:,.<>?\/]/.test(v), 'One special character']
+    ];
+    rules.forEach(([id, ok, text]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.toggle('ok', ok);
+      el.textContent = (ok ? 'ok  ' : 'x  ') + text;
+    });
+  }
+
+  function doGeocode(prefix) {
+    const inputEl = document.getElementById(prefix + '-addr-search');
+    const resultsEl = document.getElementById(prefix + '-addr-results');
+    const q = inputEl.value.trim();
+    if (q.length < 3) { resultsEl.classList.add('hidden'); return; }
+    clearTimeout(timers[prefix]);
+    timers[prefix] = setTimeout(async () => {
+      try {
+        const url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=5&countrycodes=in';
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        resultsEl.innerHTML = '';
+        if (!data.length) {
+          resultsEl.innerHTML = '<div class="geocode-option text-gray-400">No results found</div>';
+        } else {
+          data.forEach(item => {
+            const d = document.createElement('div');
+            d.className = 'geocode-option';
+            d.textContent = item.display_name;
+            d.addEventListener('click', () => setLocation(prefix, item.lat, item.lon, item.display_name));
+            resultsEl.appendChild(d);
+          });
+        }
+        resultsEl.classList.remove('hidden');
+      } catch(e) { console.error(e); }
+    }, 500);
+  }
+
+  function setLocation(prefix, lat, lng, addr) {
+    document.getElementById(prefix + '-lat').value = parseFloat(lat).toFixed(6);
+    document.getElementById(prefix + '-lng').value = parseFloat(lng).toFixed(6);
+    document.getElementById(prefix + '-address').value = addr;
+    document.getElementById(prefix + '-addr-search').value = addr.length > 65 ? addr.substring(0,65)+'...' : addr;
+    document.getElementById(prefix + '-addr-results').classList.add('hidden');
+    const lbl = document.getElementById(prefix + '-addr-label');
+    if (lbl) { lbl.textContent = 'Location set: ' + addr.substring(0,80); lbl.classList.remove('hidden'); }
+  }
+
+  function useGPS(prefix) {
+    if (!navigator.geolocation) { alert('Geolocation not supported by this browser.'); return; }
+    navigator.geolocation.getCurrentPosition(async pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lng = pos.coords.longitude.toFixed(6);
+      document.getElementById(prefix + '-lat').value = lat;
+      document.getElementById(prefix + '-lng').value = lng;
+      try {
+        const res = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lng + '&format=json', { headers: {'Accept-Language':'en'} });
+        const data = await res.json();
+        const addr = data.display_name || (lat + ', ' + lng);
+        setLocation(prefix, lat, lng, addr);
+      } catch(e) {
+        document.getElementById(prefix + '-address').value = lat + ', ' + lng;
+        document.getElementById(prefix + '-addr-search').value = lat + ', ' + lng;
+      }
+    }, () => alert('Could not get GPS location. Please allow browser location access or type your address manually.'));
+  }
+
+  async function submitForm(e, role) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('button[type=submit]');
+    const errEl = document.getElementById('global-error');
+    const okEl  = document.getElementById('global-success');
+    errEl.classList.add('hidden'); okEl.classList.add('hidden');
+    btn.disabled = true; btn.textContent = 'Registering...';
+
+    const fd = new FormData(form);
+    const body = {};
+    fd.forEach((v, k) => { body[k] = v; });
+    if (body.lat) body.lat = parseFloat(body.lat);
+    if (body.lng) body.lng = parseFloat(body.lng);
+
+    try {
+      const res = await fetch('/api/v1/auth/register/' + role, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const detail = data.detail;
+        if (Array.isArray(detail)) {
+          errEl.textContent = detail.map(m => m.msg || m.message || JSON.stringify(m)).join(' | ');
+        } else {
+          errEl.textContent = (typeof detail === 'string') ? detail : 'Registration failed. Check all fields.';
+        }
+        errEl.classList.remove('hidden');
+      } else {
+        okEl.textContent = (data.message || 'Registered successfully!') + ' Redirecting to login...';
+        okEl.classList.remove('hidden');
+        form.reset();
+        setTimeout(() => { window.location.href = '/login.html'; }, 2500);
+      }
+    } catch(err) {
+      errEl.textContent = 'Network error. Make sure the server is running.';
+      errEl.classList.remove('hidden');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Register ' + role.charAt(0).toUpperCase() + role.slice(1);
+  }
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', e => {
+    if (!e.target.closest('[id$="-addr-search"]') && !e.target.closest('.geocode-dropdown')) {
+      document.querySelectorAll('.geocode-dropdown').forEach(d => d.classList.add('hidden'));
+    }
+  });
+</script>
+</body>
+</html>

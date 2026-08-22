@@ -13,7 +13,7 @@ const Ambulance = {
   setStatus: async (status) => {
     const user = Auth.getCurrentUser();
     if(user) {
-      await API.updateAmbulanceStatus(user.unitId, status);
+      await API.updateAmbulanceStatus(user.ambulanceId, status);
       Ambulance.updateStatusUI();
     }
   },
@@ -24,7 +24,7 @@ const Ambulance = {
     
     const res = await API.getAmbulances();
     if(res.success) {
-      const myUnit = res.data.find(a => a.id === user.unitId);
+      const myUnit = res.data.find(a => a.id === user.ambulanceId);
       if(myUnit) {
         const btnAvail = document.getElementById('btn-status-avail');
         const btnBusy = document.getElementById('btn-status-busy');

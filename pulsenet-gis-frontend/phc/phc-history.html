@@ -66,7 +66,7 @@
   <script src="../js/auth.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      Auth.requireRole(['PHC_DOCTOR']);
+      Auth.requireRole(['PHC']);
       
       const res = await API.getAllReferrals();
       const referrals = res.success ? res.data : [];

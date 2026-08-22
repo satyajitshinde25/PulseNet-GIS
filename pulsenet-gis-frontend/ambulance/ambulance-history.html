@@ -32,14 +32,14 @@
   <script src="../js/auth.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const user = Auth.requireRole(['AMBULANCE_DRIVER']);
+      const user = Auth.requireRole(['AMBULANCE']);
       if(user) {
-        document.getElementById('unit-name-display').textContent = user.unitId.toUpperCase();
+        document.getElementById('unit-name-display').textContent = user.ambulanceId.toUpperCase();
         
         const res = await API.getAllReferrals();
         const referrals = res.success ? res.data : [];
         // Find completed trips for this unit
-        const completed = referrals.filter(r => r.status === 'COMPLETED' && r.ambulanceId === user.unitId);
+        const completed = referrals.filter(r => r.status === 'COMPLETED' && r.ambulanceId === user.ambulanceId);
         
         const listEl = document.getElementById('ambulance-history-list');
         

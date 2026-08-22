@@ -58,7 +58,7 @@
   <script src="../js/auth.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const user = Auth.requireRole(['HOSPITAL_MANAGER']);
+      const user = Auth.requireRole(['HOSPITAL']);
       if(user) {
         const res = await API.getAllReferrals();
         const referrals = res.success ? res.data : [];

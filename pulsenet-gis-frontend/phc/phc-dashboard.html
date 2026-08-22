@@ -110,7 +110,7 @@
             <h3 class="text-gray-500 font-medium">Completed Today</h3>
             <span class="material-symbols-outlined text-green-500 bg-green-50 p-2 rounded-lg">task_alt</span>
           </div>
-          <p class="text-3xl font-bold text-gray-800" id="stat-completed">2</p>
+          <p class="text-3xl font-bold text-gray-800" id="stat-completed">0</p>
         </div>
       </div>
 
@@ -143,7 +143,7 @@
   <script src="js/phc.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      Auth.requireRole(['PHC_DOCTOR']);
+      Auth.requireRole(['PHC']);
       PHC.initDashboard();
       
       // Initialize Dashboard Map

@@ -86,7 +86,7 @@
   <script src="../js/map.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      Auth.requireRole(['PHC_DOCTOR']);
+      Auth.requireRole(['PHC']);
       
       const urlParams = new URLSearchParams(window.location.search);
       const refId = urlParams.get('id') || localStorage.getItem('activeReferralId');

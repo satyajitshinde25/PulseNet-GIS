@@ -186,7 +186,7 @@
   <script src="js/phc.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      Auth.requireRole(['PHC_DOCTOR']);
+      Auth.requireRole(['PHC']);
       
       document.getElementById('referral-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -205,7 +205,7 @@
             blood: document.getElementById('req-blood').checked,
             bloodUnits: document.getElementById('req-blood').checked ? parseInt(document.getElementById('blood-units').value) : 0
           },
-          phcId: Auth.requireRole(['PHC_DOCTOR']).phcId
+          phcId: Auth.requireRole(['PHC']).phcId
         };
 
         const overlay = document.getElementById('submission-overlay');

@@ -68,7 +68,7 @@
   <script src="../js/api.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const user = Auth.requireRole(['HOSPITAL_MANAGER']);
+      const user = Auth.requireRole(['HOSPITAL']);
       if(user) {
         const invRes = await API.getHospitalInventory(user.hospitalId);
         
@@ -109,7 +109,7 @@
     });
 
     window.updateInventory = async (key, delta) => {
-      const user = Auth.requireRole(['HOSPITAL_MANAGER']);
+      const user = Auth.requireRole(['HOSPITAL']);
       if (!user) return;
       
       // Get current inventory to calculate new value

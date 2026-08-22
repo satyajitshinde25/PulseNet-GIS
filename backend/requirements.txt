@@ -1,4 +1,9 @@
 fastapi
 uvicorn
 requests
-pydantic
+pydantic[email]
+sqlalchemy
+bcrypt
+python-jose[cryptography]
+python-multipart
+python-dotenv

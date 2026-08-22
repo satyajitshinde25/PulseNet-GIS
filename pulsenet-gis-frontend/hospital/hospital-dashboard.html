@@ -150,7 +150,7 @@
   <script src="js/hospital.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const user = Auth.requireRole(['HOSPITAL_MANAGER']);
+      const user = Auth.requireRole(['HOSPITAL']);
       if(user) {
         document.getElementById('hospital-name-display').textContent = 'Hospital ' + user.hospitalId;
         Hospital.initDashboard(user.hospitalId);

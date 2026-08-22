@@ -8,11 +8,12 @@ const PHC = {
     const res = await API.getAllReferrals();
     const referrals = res.success ? res.data : [];
     
-    let active = 0, pending = 0, transfers = 0;
+    let active = 0, pending = 0, transfers = 0, completed = 0;
     
     referrals.forEach(r => {
       if (['PENDING_MATCHING', 'WAITING_HOSPITAL_ACCEPTANCE'].includes(r.status)) pending++;
       else if (['ACCEPTED', 'AMBULANCE_DISPATCHED', 'ROUTING'].includes(r.status)) transfers++;
+      else if (['COMPLETED'].includes(r.status)) completed++;
       
       if (r.status !== 'COMPLETED' && r.status !== 'CANCELLED') active++;
     });
@@ -20,6 +21,7 @@ const PHC = {
     document.getElementById('stat-active').textContent = active;
     document.getElementById('stat-pending').textContent = pending;
     document.getElementById('stat-transfers').textContent = transfers;
+    document.getElementById('stat-completed').textContent = completed;
 
     const listEl = document.getElementById('recent-referrals-list');
     if (referrals.length === 0) {

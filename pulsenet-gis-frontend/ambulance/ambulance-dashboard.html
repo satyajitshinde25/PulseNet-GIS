@@ -53,10 +53,10 @@
   <script src="js/ambulance.js?v=3"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const user = Auth.requireRole(['AMBULANCE_DRIVER']);
+      const user = Auth.requireRole(['AMBULANCE']);
       if(user) {
-        document.getElementById('unit-name-display').textContent = user.unitId.toUpperCase();
-        Ambulance.initDashboard(user.unitId);
+        document.getElementById('unit-name-display').textContent = user.ambulanceId.toUpperCase();
+        Ambulance.initDashboard(user.ambulanceId);
         
         // Initialize Map
         setTimeout(() => {
@@ -67,7 +67,7 @@
         }, 500);
 
         window.addEventListener('storage', () => {
-          Ambulance.checkDispatch(user.unitId);
+          Ambulance.checkDispatch(user.ambulanceId);
         });
       }
     });
